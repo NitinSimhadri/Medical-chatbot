@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Skin & Hair Care - Medical Chatbot</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
+</head>
+<body>
+    <div style="max-width:900px;margin:80px auto;padding:30px;background:rgba(0,0,0,0.5);border-radius:8px;color:#fff;">
+        <h1>Skin & Hair Care (Image-based)</h1>
+        <p>You can upload images here for basic informational guidance and/or enter a brief description of the issue. Note: This is educational only; no diagnostic claims. For concerning findings consult a dermatologist or trichologist.</p>
+        <form id="skinForm">
+            <label>Describe issue (e.g., acne, dry skin, hair loss, dandruff):<br/>
+                <input type="text" id="issue" placeholder="e.g., acne on cheeks" style="width:100%" required>
+            </label><br/><br/>
+            <label>Age: <input type="number" id="age" min="1" max="120" required></label><br/><br/>
+            <label>Any known allergies or conditions (comma-separated):<br/>
+                <input type="text" id="allergies" placeholder="e.g., eczema, shellfish allergy" style="width:100%">
+            </label><br/><br/>
+            <label>Upload image (optional): <input type="file" id="img" accept="image/*"></label><br/><br/>
+            <button type="submit">Get guidance</button>
+            <button type="button" id="previewBtn">Preview image</button>
+        </form>
+        <div id="preview" style="margin-top:16px"></div>
+        <div id="skinResult" style="margin-top:16px;font-weight:600;"></div>
+        <p><a href="/">Return to chat</a></p>
+    </div>
+    <script>
+        document.getElementById('previewBtn').addEventListener('click', function(){
+            const f = document.getElementById('img').files[0];
+            if(!f){ alert('Choose an image to preview.'); return }
+            const url = URL.createObjectURL(f);
+            document.getElementById('preview').innerHTML = `<img src="${url}" style="max-width:320px;border-radius:8px;"/>`;
+        })
+
+        document.getElementById('skinForm').addEventListener('submit', function(e){
+            e.preventDefault();
+            const issue = (document.getElementById('issue').value || '').toLowerCase();
+            const age = parseInt(document.getElementById('age').value,10);
+            const allergies = (document.getElementById('allergies').value || 'None');
+
+            if(!issue || !age){ document.getElementById('skinResult').innerText='Enter valid issue and age.'; return }
+
+            // Basic keyword mapping
+            const suggestions = [];
+            const tests = [];
+            const diet = [];
+
+            if(issue.includes('acne')){
+                suggestions.push('Gentle cleanser twice daily, non-comedogenic moisturiser, topical agents (benzoyl peroxide or salicylic acid). For persistent moderate-severe acne see a dermatologist for prescription topical retinoids or oral treatments.');
+                diet.push('Reduce high-glycemic-index foods and excessive dairy; increase fresh fruits, vegetables, and water.');
+                tests.push('Consider hormonal evaluation if adult-onset or severe (e.g., PCOS testing in females).');
+            }
+            if(issue.includes('dry') || issue.includes('eczema') || issue.includes('dermatitis')){
+                suggestions.push('Use emollient-rich moisturizers, avoid harsh soaps, use lukewarm water for bathing, and apply moisturizers immediately after washing. Consider topical corticosteroids for flares under medical advice.');
+                diet.push('Ensure adequate hydration and consider omega-3 rich foods (fatty fish, flaxseed).');
+                tests.push('If severe, patch testing or allergy evaluation may be considered.');
+            }
+            if(issue.includes('dandruff') || issue.includes('seborrheic')){
+                suggestions.push('Use anti-dandruff shampoos containing zinc pyrithione, selenium sulfide, or ketoconazole. Improve scalp hygiene.');
+                diet.push('Balanced diet; consider reducing sugary and processed foods.');
+            }
+            if(issue.includes('hair') || issue.includes('hair loss') || issue.includes('bald')){
+                suggestions.push('Check for reversible causes (nutritional deficiency, thyroid disease). Consider topical minoxidil for androgenetic hair loss; consult specialist for pattern hair loss or scarring alopecia.');
+                diet.push('Ensure adequate protein, iron, vitamin D, B12, and zinc; consider blood tests to confirm deficiencies.');
+                tests.push('Blood tests: CBC, TSH, ferritin, vitamin D, B12 where appropriate.');
+            }
+            if(suggestions.length===0){
+                suggestions.push('General advice: maintain gentle skin/hair care, avoid irritants, and seek clinical assessment for persistent or worsening issues.');
+                diet.push('Follow a balanced diet with adequate protein, fruits, vegetables, and hydration.');
+            }
+
+            // Age-specific notes
+            if(age < 18){
+                suggestions.push('For children/teens use pediatric-safe products and consult a pediatric dermatologist for prescription treatments.');
+            } else if(age > 65){
+                suggestions.push('In older adults, be cautious with potent topical steroids and consider skin fragility; consult clinician for tailored therapy.');
+            }
+
+            // Allergies note
+            if(allergies && allergies.toLowerCase() !== 'none'){
+                suggestions.push(`Note: reported allergies (${allergies}) — avoid known triggers and mention these to your clinician.`);
+            }
+
+            // Build output
+            let out = '<h3>Suggested care</h3>';
+            out += '<ul>' + suggestions.map(s=>`<li>${s}</li>`).join('') + '</ul>';
+            if(tests.length) out += '<h4>Recommended tests / investigations</h4><ul>' + tests.map(t=>`<li>${t}</li>`).join('') + '</ul>';
+            if(diet.length) out += '<h4>Diet & lifestyle suggestions</h4><ul>' + diet.map(d=>`<li>${d}</li>`).join('') + '</ul>';
+            out += '<p><strong>Important:</strong> This guidance is educational and not a diagnosis. For persistent or severe problems consult a qualified healthcare professional.</p>';
+
+            document.getElementById('skinResult').innerHTML = out;
+        })
+    </script>
+</body>
+</html>

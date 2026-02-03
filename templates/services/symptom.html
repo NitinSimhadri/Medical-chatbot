@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Symptom Checker - Medical Chatbot</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
+</head>
+<body>
+    <div style="max-width:900px;margin:60px auto;padding:24px;background:rgba(0,0,0,0.45);border-radius:8px;color:#fff;">
+        <h1>Symptom Checker (Informational)</h1>
+        <p>Enter your symptoms and brief details; this tool provides non-diagnostic triage suggestions only.</p>
+
+        <form id="symptomForm">
+            <label>Describe symptoms (brief):<br/>
+                <input type="text" id="symptoms" placeholder="e.g., chest pain and shortness of breath" style="width:100%" required>
+            </label><br/><br/>
+            <label>Age: <input type="number" id="age" min="0" max="120" required></label>
+            <label style="margin-left:12px">Duration (hours): <input type="number" id="duration" min="0" value="1"></label>
+            <label style="margin-left:12px">Severity:
+                <select id="severity">
+                    <option value="mild">Mild</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="severe">Severe</option>
+                </select>
+            </label><br/><br/>
+            <label>Any serious conditions (comma-separated):<br/>
+                <input type="text" id="conditions" placeholder="e.g., heart disease, diabetes" style="width:100%"></label>
+            <br/><br/>
+            <button type="submit">Check</button>
+        </form>
+
+        <div id="result" style="margin-top:16px;font-weight:600;"></div>
+        <p style="margin-top:12px;color:#c9eae4">Important: This is educational only and not a medical diagnosis. For emergencies call local emergency services.</p>
+        <p><a href="/">Return to chat</a></p>
+    </div>
+
+    <script>
+        document.getElementById('symptomForm').addEventListener('submit', function(e){
+            e.preventDefault();
+            const text = (document.getElementById('symptoms').value||'').toLowerCase();
+            const age = parseInt(document.getElementById('age').value,10) || 0;
+            const dur = parseFloat(document.getElementById('duration').value) || 0;
+            const severity = document.getElementById('severity').value;
+            const cond = (document.getElementById('conditions').value||'').toLowerCase();
+
+            // Urgent red-flag keywords
+            const redFlags = ['chest pain','shortness of breath','severe bleeding','unconscious','fainting','sudden weakness','face droop','slurred speech','severe abdominal pain'];
+            const urgent = redFlags.some(k => text.includes(k));
+
+            // Fever handling
+            const fever = text.includes('fever') || text.includes('temperature');
+
+            let advice = '';
+            if(urgent || severity==='severe'){
+                advice = 'Urgent: seek immediate medical attention or call emergency services. Red flag symptoms require urgent evaluation.';
+            } else if((fever && dur>=48 && severity!=='mild') || (age>65 && severity!=='mild') || cond.includes('heart') || cond.includes('cancer')){
+                advice = 'High-priority: see your primary care clinician promptly or an urgent clinic for assessment.';
+            } else if(severity==='moderate' || dur>=72){
+                advice = 'Moderate: arrange a medical review with your GP/clinic within a day or two. Monitor symptoms closely and seek urgent care if they worsen.';
+            } else {
+                advice = 'Self-care: many mild symptoms can be managed at home with rest, fluids, and symptom-directed measures. If symptoms persist or worsen, seek medical review.';
+            }
+
+            // Provide suggested next steps and tests
+            let steps = [];
+            if(text.includes('cough') || text.includes('fever')) steps.push('Measure temperature and oxygen saturation (if you have a pulse oximeter).');
+            if(text.includes('chest pain')) steps.push('If chest pain is present, go to emergency services immediately.');
+            if(text.includes('headache') && severity!=='mild') steps.push('If severe headache with visual changes or vomiting, seek urgent care.');
+            if(text.includes('rash')) steps.push('Avoid new topical products and photograph the rash for comparison; see GP if spreading or with systemic symptoms.');
+            if(steps.length===0) steps.push('Keep symptom diary (time, severity), rest, hydrate, and use over-the-counter measures as appropriate.');
+
+            // Build display
+            let out = `<p>${advice}</p>`;
+            out += '<h4>Next steps</h4><ul>' + steps.map(s=>`<li>${s}</li>`).join('') + '</ul>';
+            out += '<h4>When to get urgent help</h4><ul>' + redFlags.map(r=>`<li>${r}</li>`).join('') + '</ul>';
+            out += '<p><strong>Note:</strong> This tool does not replace a clinical assessment.</p>';
+
+            document.getElementById('result').innerHTML = out;
+        });
+    </script>
+</body>
+</html>

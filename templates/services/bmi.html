@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>BMI Calculator - Medical Chatbot</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
+</head>
+<body>
+    <div style="max-width:700px;margin:80px auto;padding:30px;background:rgba(0,0,0,0.5);border-radius:8px;color:#fff;">
+        <h1>BMI Calculator</h1>
+        <p>Use this calculator to estimate Body Mass Index (BMI).</p>
+        <form id="bmiForm">
+            <label>Height (cm): <input type="number" id="height" required></label><br/><br/>
+            <label>Weight (kg): <input type="number" id="weight" required></label><br/><br/>
+            <button type="submit">Calculate BMI</button>
+        </form>
+        <div id="bmiResult" style="margin-top:16px;font-weight:600;"></div>
+        <p><a href="/">Return to chat</a></p>
+    </div>
+    <script>
+        document.getElementById('bmiForm').addEventListener('submit', function(e){
+            e.preventDefault();
+            const h = parseFloat(document.getElementById('height').value)/100;
+            const w = parseFloat(document.getElementById('weight').value);
+            if(!h || !w){ document.getElementById('bmiResult').innerText = 'Enter valid height and weight.'; return }
+            const bmi = (w / (h*h)).toFixed(1);
+            let cat = '';
+            if(bmi < 18.5) cat = 'Underweight';
+            else if(bmi < 25) cat = 'Normal';
+            else if(bmi < 30) cat = 'Overweight';
+            else cat = 'Obese';
+            document.getElementById('bmiResult').innerText = `BMI: ${bmi} — ${cat}`;
+        })
+    </script>
+</body>
+</html>

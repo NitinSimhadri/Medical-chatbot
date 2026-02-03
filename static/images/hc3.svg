@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="g3" x1="0" x2="1">
+      <stop offset="0" stop-color="#2cb0c3"/>
+      <stop offset="1" stop-color="#128998"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#g3)"/>
+  <g fill="rgba(255,255,255,0.04)">
+    <path d="M200 200 h300 v150 h-300 z"/>
+    <path d="M600 350 h400 v200 h-400 z"/>
+    <path d="M1100 150 h350 v250 h-350 z"/>
+  </g>
+  <!-- central medical cross -->
+  <g transform="translate(800,450)">
+    <rect x="-32" y="-96" width="64" height="192" rx="6" fill="rgba(255,255,255,0.12)" />
+    <rect x="-96" y="-32" width="192" height="64" rx="6" fill="rgba(255,255,255,0.12)" />
+  </g>
+  <text x="80" y="420" fill="#effffb" font-size="48" font-family="Arial,Helvetica,sans-serif">Healthcare medibot</text>
+</svg>

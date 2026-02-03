@@ -1,0 +1,164 @@
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Chatbot</title>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
+	</head>
+	
+	
+	<body>
+		<div style="position:fixed; top:12px; right:20px; z-index:50;">
+			<a href="/about" style="color:rgba(255,255,255,0.85); margin-right:12px; text-decoration:none; font-weight:600;">About</a>
+			<a href="/disclaimer" style="color:rgba(255,255,255,0.85); text-decoration:none; font-weight:600; margin-right:12px;">Disclaimer</a>
+			<!-- Service icons menu -->
+			<a href="/services/bp-hr" title="BP & Heart Rate" style="color:rgba(255,255,255,0.9); margin-right:8px;"><i class="fas fa-heartbeat"></i></a>
+			<a href="/services/bmi" title="BMI Calculator" style="color:rgba(255,255,255,0.9); margin-right:8px;"><i class="fas fa-weight"></i></a>
+			<a href="/services/diet" title="Diet Planner" style="color:rgba(255,255,255,0.9); margin-right:8px;"><i class="fas fa-utensils"></i></a>
+			<a href="/services/skin" title="Skin & Hair" style="color:rgba(255,255,255,0.9); margin-right:8px;"><i class="fas fa-leaf"></i></a>
+		</div>
+		<div class="container-fluid h-100">
+			<div class="row justify-content-center h-100">		
+				<div class="col-md-8 col-xl-6 chat">
+					<div class="card">
+						<div class="card-header msg_head">
+							<div class="d-flex bd-highlight">
+								<div class="img_cont">
+									<img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img">
+									<!-- <img src="https://www.prdistribution.com/spirit/uploads/pressreleases/2019/newsreleases/d83341deb75c4c4f6b113f27b1e42cd8-chatbot-florence-already-helps-thousands-of-patients-to-remember-their-medication.png" class="rounded-circle user_img"> -->
+									<span class="online_icon"></span>
+								</div>
+								<div class="user_info">
+									<span>Medical Chatbot</span>
+									<p>Ask me anything!</p>
+								</div>
+								</div>
+								<!-- Inline rotating quote (below title, above services) -->
+								<div id="quoteInlineContainerHeader">
+									<div id="quoteBox" class="quote-inline">Be positive — you're doing great!</div>
+								</div>
+								<!-- Service labels -->
+								<div style="margin-top:12px; width:100%;" class="service-buttons">
+									<a class="service-btn" href="/services/bp-hr">BP & Heart Rate</a>
+									<a class="service-btn" href="/services/bmi">BMI Calculator</a>
+									<a class="service-btn" href="/services/diet">Diet Planner</a>
+									<a class="service-btn" href="/services/skin">Skin & Hair Care</a>
+									<a class="service-btn" href="/services/symptom">Symptom Checker</a>
+									<a class="service-btn" href="/services/more">More Services</a>
+								</div>
+							</div>
+						</div>
+						<div id="messageFormeight" class="card-body msg_card_body">
+							
+							
+						</div>
+						<div class="card-footer">
+							<form id="messageArea" class="input-group">
+								<input type="file" id="chat_image" accept="image/*" style="display:none;" />
+								<button type="button" id="pickImage" class="input-group-text send_btn" title="Attach image" style="margin-right:8px;">
+									<i class="fas fa-image"></i>
+								</button>
+								<input type="text" id="text" name="msg" placeholder="Type your message..." autocomplete="off" class="form-control type_msg" />
+								<div class="input-group-append">
+									<button type="submit" id="send" class="input-group-text send_btn"><i class="fas fa-location-arrow"></i></button>
+								</div>
+							</form>
+							<div id="chatImagePreview" style="max-width:220px;margin-top:8px;display:none;"></div>
+						</div>
+                        
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<script>
+			// rotating motivational quotes and chat image prompt handling
+			const QUOTES = [
+				"Stay positive — small steps every day.",
+				"Take care of your body; it's the only place you live.",
+				"Consistency matters more than perfection.",
+				"Hydrate, rest, repeat — your health is an investment.",
+				"Talk to a professional for medical concerns — be safe."
+			];
+			let qi = 0;
+			const qb = document.getElementById('quoteBox');
+			// initial style
+			qb.style.opacity = 1;
+			qb.style.transition = 'opacity 600ms ease';
+			setInterval(()=>{
+				// fade out, change text, fade in for smooth transition
+				qb.style.opacity = 0;
+				setTimeout(()=>{
+					qi = (qi + 1) % QUOTES.length;
+					qb.innerText = QUOTES[qi];
+					qb.style.opacity = 1;
+				}, 600);
+			}, 10000);
+
+			// Image pick and preview — client-side only, generates a suggested prompt
+			document.getElementById('pickImage').addEventListener('click', ()=>{
+				document.getElementById('chat_image').click();
+			});
+
+			document.getElementById('chat_image').addEventListener('change', function(){
+				const f = this.files[0];
+				if(!f) return;
+				const url = URL.createObjectURL(f);
+				document.getElementById('chatImagePreview').style.display = 'block';
+				document.getElementById('chatImagePreview').innerHTML = `<img src="${url}" style="max-width:220px;border-radius:8px;"/>`;
+				// generate a suggested prompt for the image (client-side only)
+				const suggestion = `Suggested image prompt: Describe visible features in the image, possible causes, and non-diagnostic care advice. Mention if specialist referral is recommended.`;
+				// show suggestion briefly under preview
+				const s = document.createElement('div'); s.style.color='rgba(255,255,255,0.8)'; s.style.marginTop='6px'; s.innerText = suggestion;
+				document.getElementById('chatImagePreview').appendChild(s);
+				// add a copy button to copy suggestion to chat input
+				const copyBtn = document.createElement('button');
+				copyBtn.type = 'button';
+				copyBtn.innerText = 'Copy prompt';
+				copyBtn.style.marginTop = '8px';
+				copyBtn.className = 'service-btn';
+				copyBtn.addEventListener('click', function(){
+					navigator.clipboard.writeText(suggestion).then(()=>{
+						// also populate chat input
+						document.getElementById('text').value = suggestion;
+					});
+				});
+				document.getElementById('chatImagePreview').appendChild(copyBtn);
+			});
+
+			$(document).ready(function() {
+				$("#messageArea").on("submit", function(event) {
+					const date = new Date();
+					const hour = date.getHours();
+					const minute = date.getMinutes();
+					const str_time = hour+":"+minute;
+					var rawText = $("#text").val();
+
+					var userHtml = '<div class="d-flex justify-content-end mb-4"><div class="msg_cotainer_send">' + rawText + '<span class="msg_time_send">'+ str_time + '</span></div><div class="img_cont_msg"><img src="https://i.ibb.co/d5b84Xw/Untitled-design.png" class="rounded-circle user_img_msg"></div></div>';
+					
+					$("#text").val("");
+					$("#messageFormeight").append(userHtml);
+
+					$.ajax({
+						data: {
+							msg: rawText,	
+						},
+						type: "POST",
+						url: "/get",
+					}).done(function(data) {
+						var botHtml = '<div class="d-flex justify-content-start mb-4"><div class="img_cont_msg"><img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg"></div><div class="msg_cotainer">' + data + '<span class="msg_time">' + str_time + '</span></div></div>';
+						$("#messageFormeight").append($.parseHTML(botHtml));
+					});
+					event.preventDefault();
+				});
+			});
+		</script>
+        
+    </body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>BP & Heart Rate - Medical Chatbot</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
+</head>
+<body>
+    <div style="max-width:900px;margin:80px auto;padding:30px;background:rgba(0,0,0,0.5);border-radius:8px;color:#fff;">
+        <h1>Blood Pressure & Heart Rate Monitoring</h1>
+        <p>This page provides information and guidance about monitoring blood pressure (BP) and heart rate (HR).</p>
+        <p>Note: For clinical-grade accuracy use certified medical devices and follow your healthcare provider's guidance. This page is an informational companion and does not replace professional medical devices or advice.</p>
+        <h3>Quick precaution calculator</h3>
+        <p>You may enter either systolic/diastolic values (preferred) or a BP percentage of your usual value.</p>
+        <form id="bpForm">
+            <label>Systolic (mmHg): <input type="number" id="systolic" min="40" max="300"></label>
+            <label style="margin-left:12px">Diastolic (mmHg): <input type="number" id="diastolic" min="20" max="200"></label><br/><br/>
+            <div style="margin-bottom:10px">OR</div>
+            <label>BP percentage (% of normal): <input type="number" id="bp_percent" min="10" max="300" placeholder="100 for normal"></label><br/><br/>
+            <label>Heart rate (bpm): <input type="number" id="hr" min="20" max="220" required></label><br/><br/>
+            <button type="submit">Get Precautions</button>
+        </form>
+        <div id="bpResult" style="margin-top:16px;font-weight:600;"></div>
+        <div style="margin-top:18px;">
+            <button id="saveReading" type="button">Save reading</button>
+            <button id="viewHistory" type="button">View history</button>
+            <button id="exportCsv" type="button">Export CSV</button>
+        </div>
+        <div id="history" style="margin-top:12px;display:none;background:rgba(255,255,255,0.03);padding:8px;border-radius:6px;"></div>
+        <h3 style="margin-top:18px">How to use</h3>
+        <ul>
+            <li>Use a validated BP monitor or wearable to measure values.</li>
+            <li>Record systolic/diastolic BP and resting heart rate.</li>
+            <li>Consult a clinician if readings are consistently outside expected ranges.</li>
+        </ul>
+        <p><a href="/">Return to chat</a></p>
+    </div>
+    <script>
+        document.getElementById('bpForm').addEventListener('submit', function(e){
+            e.preventDefault();
+            const sys = parseInt(document.getElementById('systolic').value,10);
+            const dia = parseInt(document.getElementById('diastolic').value,10);
+            const p = parseFloat(document.getElementById('bp_percent').value);
+            const hr = parseInt(document.getElementById('hr').value,10);
+
+            if(isNaN(hr)){ document.getElementById('bpResult').innerText = 'Enter a valid heart rate.'; return }
+
+            let msg = '';
+
+            if(!isNaN(sys) && !isNaN(dia)){
+                // Use systolic/diastolic ranges (AHA/ACC-style)
+                if(sys > 180 || dia > 120){
+                    msg += 'Hypertensive crisis suspected. Seek emergency medical care immediately.';
+                } else if(sys >= 140 || dia >= 90){
+                    msg += 'Hypertension (Stage 2). Precautions: avoid exertion, re-measure after rest, consult your clinician for treatment adjustment.';
+                } else if((sys >= 130 && sys <= 139) || (dia >= 80 && dia <= 89)){
+                    msg += 'Hypertension (Stage 1). Precautions: reduce salt, avoid stimulants, monitor closely and consult your clinician.';
+                } else if(sys >= 120 && sys <= 129 && dia < 80){
+                    msg += 'Elevated blood pressure. Precautions: lifestyle measures (diet, exercise, reduce sodium). Monitor regularly.';
+                } else {
+                    msg += 'Blood pressure in normal range. Continue regular monitoring and healthy lifestyle.';
+                }
+            } else if(!isNaN(p)){
+                // Interpret BP percent
+                if(p < 85){
+                    msg += 'BP appears low. Precautions: sit or lie down if dizzy, hydrate, avoid sudden standing, re-measure in a few minutes.';
+                } else if(p <= 115){
+                    msg += 'BP within expected range. Maintain regular monitoring and continued healthy habits.';
+                } else {
+                    msg += 'BP appears elevated for your usual value. Reduce salt/caffeine, rest and re-measure; consult clinician if elevated readings persist.';
+                }
+            } else {
+                msg += 'Provide either systolic/diastolic values or a BP percentage to get tailored precautions.';
+            }
+
+            // Heart rate notes
+            if(hr < 50){
+                msg += '\n\nHeart rate low (bradycardia) — precaution: avoid strenuous activity, monitor symptoms (dizziness, weakness), seek medical review if symptomatic.';
+            } else if(hr <= 100){
+                msg += '\n\nHeart rate within normal resting range.';
+            } else {
+                msg += '\n\nHeart rate elevated (tachycardia) — precaution: rest, avoid stimulants (caffeine), practice slow deep breathing; seek urgent care if chest pain, shortness of breath, or fainting occurs.';
+            }
+
+            // Suggest tests or follow-up
+            msg += '\n\nSuggested follow-up: keep a log of readings (date/time, position, device used), share with your clinician; if readings are frequently low or high, ask for a clinical review and validated device check.';
+
+            document.getElementById('bpResult').innerText = msg;
+        })
+
+        // Local storage for readings (client-side only)
+        function getReadings(){
+            try{
+                const raw = localStorage.getItem('bp_readings');
+                return raw ? JSON.parse(raw) : [];
+            }catch(e){ return [] }
+        }
+        function saveReading(rec){
+            const arr = getReadings(); arr.push(rec); localStorage.setItem('bp_readings', JSON.stringify(arr));
+        }
+
+        document.getElementById('saveReading').addEventListener('click', function(){
+            const sys = document.getElementById('systolic').value || '';
+            const dia = document.getElementById('diastolic').value || '';
+            const p = document.getElementById('bp_percent').value || '';
+            const hr = document.getElementById('hr').value || '';
+            const ts = new Date().toISOString();
+            if(!sys && !dia && !p){ alert('Provide at least systolic/diastolic or BP percent to save.'); return }
+            const rec = {systolic:sys, diastolic:dia, percent:p, hr:hr, time:ts };
+            saveReading(rec);
+            alert('Reading saved locally (browser). Use View history to see saved readings.');
+        });
+
+        document.getElementById('viewHistory').addEventListener('click', function(){
+            const arr = getReadings();
+            const el = document.getElementById('history');
+            if(arr.length===0){ el.style.display='block'; el.innerText='No saved readings.'; return }
+            let html = '<table style="width:100%;color:#fff;"><tr><th>Time</th><th>Systolic</th><th>Diastolic</th><th>Percent</th><th>HR</th></tr>';
+            for(const r of arr.reverse()){
+                html += `<tr><td>${r.time}</td><td>${r.systolic}</td><td>${r.diastolic}</td><td>${r.percent}</td><td>${r.hr}</td></tr>`;
+            }
+            html += '</table>';
+            el.style.display='block'; el.innerHTML = html;
+        });
+
+        document.getElementById('exportCsv').addEventListener('click', function(){
+            const arr = getReadings(); if(arr.length===0){ alert('No readings to export.'); return }
+            const rows = [['time','systolic','diastolic','percent','hr']];
+            for(const r of arr){ rows.push([r.time,r.systolic,r.diastolic,r.percent,r.hr]); }
+            const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+            const blob = new Blob([csv], {type:'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'bp_readings.csv'; a.click(); URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>

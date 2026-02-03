@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Diet Planner - Medical Chatbot</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
+</head>
+<body>
+    <div style="max-width:900px;margin:80px auto;padding:30px;background:rgba(0,0,0,0.5);border-radius:8px;color:#fff;">
+        <h1>Simple Diet Planner</h1>
+        <p>This planner gives a basic caloric estimate and simple meal suggestions based on goals. It is educational only.</p>
+        <form id="dietForm">
+            <label>Age: <input type="number" id="age" required></label><br/><br/>
+            <label>Height (cm): <input type="number" id="height" required></label><br/><br/>
+            <label>Weight (kg): <input type="number" id="weight" required></label><br/><br/>
+            <label>Activity level:
+                <select id="activity">
+                    <option value="1.2">Sedentary</option>
+                    <option value="1.375">Light</option>
+                    <option value="1.55">Moderate</option>
+                    <option value="1.725">Active</option>
+                </select>
+            </label><br/><br/>
+            <label>Goal:
+                <select id="goal">
+                    <option value="maintain">Maintain weight</option>
+                    <option value="loss">Mild weight loss</option>
+                    <option value="gain">Mild weight gain</option>
+                </select>
+            </label><br/><br/>
+            <button type="submit">Get Plan</button>
+        </form>
+        <div id="plan" style="margin-top:16px"></div>
+        <p><a href="/">Return to chat</a></p>
+    </div>
+    <script>
+        document.getElementById('dietForm').addEventListener('submit', function(e){
+            e.preventDefault();
+            const age = +document.getElementById('age').value;
+            const h = +document.getElementById('height').value;
+            const w = +document.getElementById('weight').value;
+            const activity = +document.getElementById('activity').value;
+            const goal = document.getElementById('goal').value;
+            if(!age||!h||!w){ document.getElementById('plan').innerText='Enter valid values'; return }
+            // Mifflin-St Jeor (male/female unknown) — use average
+            const bmr = 10*w + 6.25*h - 5*age + 5; // estimate
+            let calories = Math.round(bmr * activity);
+            if(goal==='loss') calories = Math.round(calories - 300);
+            if(goal==='gain') calories = Math.round(calories + 300);
+            const html = `<p>Estimated daily calories: <strong>${calories} kcal</strong></p>
+                <p>Sample simple meals:</p>
+                <ul>
+                    <li>Breakfast: Oats with fruit and nuts</li>
+                    <li>Lunch: Lean protein + vegetables + whole grains</li>
+                    <li>Snack: Yogurt or fruit</li>
+                    <li>Dinner: Fish/legumes + salad or cooked vegetables</li>
+                </ul>`;
+            document.getElementById('plan').innerHTML = html;
+        })
+    </script>
+</body>
+</html>
