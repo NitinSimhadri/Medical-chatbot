@@ -9,8 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -23,21 +22,14 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push image (verbose)
+      - name: Build & push Docker image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
-          IMAGE_TAG: latest
         run: |
           set -euxo pipefail
-          echo "🔹 Building Docker image..."
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-
-          echo "🔹 Pushing Docker image to ECR..."
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
-          echo "✅ Image pushed successfully"
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
   Continuous-Deployment:
     needs: Continuous-Integration
@@ -55,27 +47,23 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Deploy container on EC2 (FULL LOGGING)
+      - name: Deploy container on EC2
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
         run: |
           set -euxo pipefail
 
+          docker version
+          docker ps
+
           IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
-          echo "=============================="
-          echo "🚀 Deploying image: $IMAGE"
-          echo "=============================="
-
-          echo "🔹 Pulling image from ECR"
           docker pull $IMAGE
 
-          echo "🔹 Stopping old container (if exists)"
           docker stop medicalbot || true
           docker rm medicalbot || true
 
-          echo "🔹 Running new container"
           docker run -d \
             --name medicalbot \
             --restart unless-stopped \
@@ -87,13 +75,7 @@ jobs:
             -e GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}" \
             $IMAGE
 
-          echo "🔹 Waiting for container startup..."
           sleep 15
-
-          echo "🔹 Docker container status"
           docker ps
-
-          echo "🔹 Docker container logs (IMPORTANT)"
+          docker inspect -f '{{.State.Running}}' medicalbot
           docker logs medicalbot
-
-          echo "✅ Deployment completed successfully"
