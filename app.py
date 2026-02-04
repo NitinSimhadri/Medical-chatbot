@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 
 from src.helper import download_hugging_face_embeddings
-from src.prompt import *
+from src.prompt import system_prompt
 
 from langchain_pinecone import PineconeVectorStore
 from langchain_groq import ChatGroq
@@ -11,34 +11,32 @@ from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
 
-
 # --------------------------------------------------
 # App init
 # --------------------------------------------------
 app = Flask(__name__)
-
 load_dotenv(override=True)
 
 # --------------------------------------------------
-# Environment variables
+# Env vars
 # --------------------------------------------------
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 if not PINECONE_API_KEY:
-    raise ValueError("❌ PINECONE_API_KEY not found")
+    raise RuntimeError("PINECONE_API_KEY missing")
 
 if not GROQ_API_KEY:
-    raise ValueError("❌ GROQ_API_KEY not found")
-
+    raise RuntimeError("GROQ_API_KEY missing")
 
 # --------------------------------------------------
-# Embeddings
+# Embeddings (already downloaded at BUILD time)
 # --------------------------------------------------
+print("✅ Loading embeddings")
 embeddings = download_hugging_face_embeddings()
 
 # --------------------------------------------------
-# Pinecone Vector Store
+# Vector store
 # --------------------------------------------------
 index_name = "medical-chatbot"
 
@@ -53,19 +51,15 @@ retriever = docsearch.as_retriever(
 )
 
 # --------------------------------------------------
-# Groq LLM (REPLACEMENT FOR OPENAI)
+# Groq LLM
 # --------------------------------------------------
-chatModel = ChatGroq(
+chat_model = ChatGroq(
     groq_api_key=GROQ_API_KEY,
     model_name="llama-3.1-8b-instant",
-    temperature=0
+    temperature=0,
+    timeout=60
 )
 
-print("✅ Using Groq model:", chatModel.model_name)
-
-# --------------------------------------------------
-# Prompt
-# --------------------------------------------------
 prompt = ChatPromptTemplate.from_messages(
     [
         ("system", system_prompt),
@@ -73,17 +67,14 @@ prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
-# --------------------------------------------------
-# RAG Chain
-# --------------------------------------------------
-question_answer_chain = create_stuff_documents_chain(
-    llm=chatModel,
+qa_chain = create_stuff_documents_chain(
+    llm=chat_model,
     prompt=prompt
 )
 
 rag_chain = create_retrieval_chain(
     retriever,
-    question_answer_chain
+    qa_chain
 )
 
 # --------------------------------------------------
@@ -93,48 +84,18 @@ rag_chain = create_retrieval_chain(
 def index():
     return render_template("chat.html")
 
-
-@app.route("/about")
-def about():
-    return render_template("about.html")
-
-
-@app.route("/disclaimer")
-def disclaimer():
-    return render_template("disclaimer.html")
-
-
-# Services pages (simple client-side pages)
-@app.route("/services/<service>")
-def services(service):
-    allowed = {
-        "bp-hr": "services/bp_hr.html",
-        "bmi": "services/bmi.html",
-        "diet": "services/diet.html",
-        "skin": "services/skin.html",
-        "more": "services/more.html",
-        "symptom": "services/symptom.html",
-    }
-    tpl = allowed.get(service)
-    if not tpl:
-        return render_template("404.html"), 404
-    return render_template(tpl)
-
-
 @app.route("/get", methods=["POST"])
 def chat():
     msg = request.form["msg"]
-    print("User:", msg)
-
     response = rag_chain.invoke({"input": msg})
-    answer = response["answer"]
+    return response["answer"]
 
-    print("Bot:", answer)
-    return answer
-
+@app.route("/health")
+def health():
+    return {"status": "ok"}, 200
 
 # --------------------------------------------------
 # Run
 # --------------------------------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=8080, debug=False)
