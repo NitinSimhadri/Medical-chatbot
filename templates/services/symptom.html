@@ -1,81 +1,350 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <title>Symptom Checker - Medical Chatbot</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Symptom Checker - MediBot AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg-light: #ffffff;
+            --bg-lighter: #f8fafc;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        body[data-theme="dark"] {
+            --bg-light: #0f172a;
+            --bg-lighter: #1e293b;
+            --text-dark: #f8fafc;
+            --text-light: #cbd5e1;
+            --border: #334155;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, var(--bg-lighter), var(--bg-light)); color: var(--text-dark); min-height: 100vh; padding: 2rem; padding-top: 6rem; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .navbar { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 1rem 0; }
+        body[data-theme="dark"] .navbar { background: rgba(15, 23, 42, 0.95); }
+        .navbar-content { max-width: 1400px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; }
+        .logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+        .nav-link { color: var(--text-light); text-decoration: none; font-weight: 500; }
+        .card { background: var(--bg-light); border-radius: 1rem; padding: 2rem; box-shadow: var(--shadow-md); border: 1px solid var(--border); margin-bottom: 2rem; }
+        h1, h2 { color: var(--text-dark); margin-bottom: 1rem; }
+        p { line-height: 1.6; color: var(--text-light); margin-bottom: 1rem; }
+        .step { display: none; }
+        .step.active { display: block; }
+        .question { margin: 1.5rem 0; }
+        .option-btn { background: var(--bg-lighter); border: 1px solid var(--border); color: var(--text-dark); padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 0.5rem; cursor: pointer; width: 100%; text-align: left; transition: all 0.2s; font-weight: 500; }
+        .option-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn { padding: 0.75rem 1.5rem; background: linear-gradient(135deg, var(--primary), #3b82f6); color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; }
+        .btn:hover { transform: translateY(-2px); }
+        .risk-indicator { padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; font-weight: 600; }
+        .risk-low { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .risk-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .risk-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .result-box { background: var(--bg-lighter); padding: 1.5rem; border-radius: 0.75rem; margin: 1.5rem 0; border: 1px solid var(--border); }
+    </style>
+</head>
+<body data-theme="light">
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/" class="logo"><i class="fas fa-heartbeat"></i> MediBot AI</a>
+            <a href="/" class="nav-link">← Back to Chat</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        .option-btn:hover { background: rgba(255,255,255,0.2); }
+        .option-btn.selected { background: #007bff; }
+    </style>
 </head>
 <body>
     <div style="max-width:900px;margin:60px auto;padding:24px;background:rgba(0,0,0,0.45);border-radius:8px;color:#fff;">
-        <h1>Symptom Checker (Informational)</h1>
-        <p>Enter your symptoms and brief details; this tool provides non-diagnostic triage suggestions only.</p>
+        <h1>🩺 Smart Symptom Checker</h1>
+        <p>This interactive tool helps assess your symptoms and provides guidance. <strong>Remember: This is not a diagnosis - always consult a healthcare professional.</strong></p>
 
-        <form id="symptomForm">
-            <label>Describe symptoms (brief):<br/>
-                <input type="text" id="symptoms" placeholder="e.g., chest pain and shortness of breath" style="width:100%" required>
-            </label><br/><br/>
-            <label>Age: <input type="number" id="age" min="0" max="120" required></label>
-            <label style="margin-left:12px">Duration (hours): <input type="number" id="duration" min="0" value="1"></label>
-            <label style="margin-left:12px">Severity:
-                <select id="severity">
-                    <option value="mild">Mild</option>
-                    <option value="moderate">Moderate</option>
-                    <option value="severe">Severe</option>
-                </select>
-            </label><br/><br/>
-            <label>Any serious conditions (comma-separated):<br/>
-                <input type="text" id="conditions" placeholder="e.g., heart disease, diabetes" style="width:100%"></label>
-            <br/><br/>
-            <button type="submit">Check</button>
-        </form>
+        <!-- Step 1: Initial Symptoms -->
+        <div id="step1" class="step active">
+            <h3>Step 1: What are your main symptoms?</h3>
+            <p>Select all that apply:</p>
+            <div class="question">
+                <button class="option-btn" data-symptom="headache">Headache</button>
+                <button class="option-btn" data-symptom="fever">Fever/Chills</button>
+                <button class="option-btn" data-symptom="cough">Cough</button>
+                <button class="option-btn" data-symptom="chest-pain">Chest Pain</button>
+                <button class="option-btn" data-symptom="shortness-breath">Shortness of Breath</button>
+                <button class="option-btn" data-symptom="abdominal-pain">Abdominal Pain</button>
+                <button class="option-btn" data-symptom="nausea">Nausea/Vomiting</button>
+                <button class="option-btn" data-symptom="fatigue">Fatigue/Tiredness</button>
+                <button class="option-btn" data-symptom="rash">Skin Rash</button>
+                <button class="option-btn" data-symptom="joint-pain">Joint/Muscle Pain</button>
+                <button class="option-btn" data-symptom="dizziness">Dizziness</button>
+                <button class="option-btn" data-symptom="other">Other</button>
+            </div>
+            <button id="next1" style="margin-top:20px;">Next</button>
+        </div>
 
-        <div id="result" style="margin-top:16px;font-weight:600;"></div>
-        <p style="margin-top:12px;color:#c9eae4">Important: This is educational only and not a medical diagnosis. For emergencies call local emergency services.</p>
+        <!-- Step 2: Severity and Duration -->
+        <div id="step2" class="step">
+            <h3>Step 2: How severe and long-lasting are your symptoms?</h3>
+            <div class="question">
+                <label>Severity:</label><br/>
+                <button class="option-btn severity-btn" data-severity="mild">Mild - Doesn't interfere much with daily activities</button><br/>
+                <button class="option-btn severity-btn" data-severity="moderate">Moderate - Some interference with activities</button><br/>
+                <button class="option-btn severity-btn" data-severity="severe">Severe - Significantly impacts daily life</button>
+            </div>
+            <div class="question">
+                <label>Duration:</label><br/>
+                <button class="option-btn duration-btn" data-duration="hours">Less than 24 hours</button>
+                <button class="option-btn duration-btn" data-duration="days">1-3 days</button>
+                <button class="option-btn duration-btn" data-duration="week">More than a week</button>
+                <button class="option-btn duration-btn" data-duration="chronic">Chronic/Ongoing</button>
+            </div>
+            <button id="back2" style="margin-top:20px; margin-right:10px;">Back</button>
+            <button id="next2" style="margin-top:20px;">Next</button>
+        </div>
+
+        <!-- Step 3: Additional Info -->
+        <div id="step3" class="step">
+            <h3>Step 3: Additional Information</h3>
+            <div class="question">
+                <label>Age group:</label><br/>
+                <button class="option-btn age-btn" data-age="child">Child (under 12)</button>
+                <button class="option-btn age-btn" data-age="adult">Adult (12-64)</button>
+                <button class="option-btn age-btn" data-age="senior">Senior (65+)</button>
+            </div>
+            <div class="question">
+                <label>Do you have any existing medical conditions?</label><br/>
+                <input type="text" id="conditions" placeholder="e.g., diabetes, asthma, heart disease" style="width:100%; padding:8px; border-radius:4px; border:none;">
+            </div>
+            <button id="back3" style="margin-top:20px; margin-right:10px;">Back</button>
+            <button id="analyze" style="margin-top:20px;">Analyze Symptoms</button>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="step">
+            <h3>Analysis Results</h3>
+            <div id="riskDisplay"></div>
+            <div id="recommendations"></div>
+            <div id="nextSteps"></div>
+            <button id="restart" style="margin-top:20px;">Check Different Symptoms</button>
+        </div>
+
+        <div style="margin-top:30px; padding:15px; background:rgba(255,255,255,0.1); border-radius:5px;">
+            <h4>⚠️ Important Medical Disclaimer</h4>
+            <p>This tool is for informational purposes only and does not constitute medical advice, diagnosis, or treatment. Always consult with a qualified healthcare professional for any health concerns. In case of emergency, call your local emergency services immediately.</p>
+        </div>
+
         <p><a href="/">Return to chat</a></p>
     </div>
 
     <script>
-        document.getElementById('symptomForm').addEventListener('submit', function(e){
-            e.preventDefault();
-            const text = (document.getElementById('symptoms').value||'').toLowerCase();
-            const age = parseInt(document.getElementById('age').value,10) || 0;
-            const dur = parseFloat(document.getElementById('duration').value) || 0;
-            const severity = document.getElementById('severity').value;
-            const cond = (document.getElementById('conditions').value||'').toLowerCase();
+        let symptoms = [];
+        let severity = '';
+        let duration = '';
+        let age = '';
 
-            // Urgent red-flag keywords
-            const redFlags = ['chest pain','shortness of breath','severe bleeding','unconscious','fainting','sudden weakness','face droop','slurred speech','severe abdominal pain'];
-            const urgent = redFlags.some(k => text.includes(k));
+        // Step 1: Symptom selection
+        document.querySelectorAll('.option-btn[data-symptom]').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const symptom = this.dataset.symptom;
+                if (this.classList.contains('selected')) {
+                    this.classList.remove('selected');
+                    this.style.background = 'var(--bg-lighter)';
+                    this.style.color = 'var(--text-dark)';
+                    symptoms = symptoms.filter(s => s !== symptom);
+                } else {
+                    this.classList.add('selected');
+                    this.style.background = 'var(--primary)';
+                    this.style.color = 'white';
+                    symptoms.push(symptom);
+                }
+            });
+        });
 
-            // Fever handling
-            const fever = text.includes('fever') || text.includes('temperature');
-
-            let advice = '';
-            if(urgent || severity==='severe'){
-                advice = 'Urgent: seek immediate medical attention or call emergency services. Red flag symptoms require urgent evaluation.';
-            } else if((fever && dur>=48 && severity!=='mild') || (age>65 && severity!=='mild') || cond.includes('heart') || cond.includes('cancer')){
-                advice = 'High-priority: see your primary care clinician promptly or an urgent clinic for assessment.';
-            } else if(severity==='moderate' || dur>=72){
-                advice = 'Moderate: arrange a medical review with your GP/clinic within a day or two. Monitor symptoms closely and seek urgent care if they worsen.';
+        document.getElementById('next1').addEventListener('click', () => {
+            if (symptoms.length > 0) {
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step2').classList.add('active');
             } else {
-                advice = 'Self-care: many mild symptoms can be managed at home with rest, fluids, and symptom-directed measures. If symptoms persist or worsen, seek medical review.';
+                alert('Please select at least one symptom.');
+            }
+        });
+
+        // Step 2: Severity and Duration
+        document.querySelectorAll('.severity-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.severity-btn').forEach(b => {
+                    b.classList.remove('selected');
+                    b.style.background = 'var(--bg-lighter)';
+                    b.style.color = 'var(--text-dark)';
+                });
+                this.classList.add('selected');
+                this.style.background = 'var(--primary)';
+                this.style.color = 'white';
+                severity = this.dataset.severity;
+            });
+        });
+
+        document.querySelectorAll('.duration-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.duration-btn').forEach(b => {
+                    b.classList.remove('selected');
+                    b.style.background = 'var(--bg-lighter)';
+                    b.style.color = 'var(--text-dark)';
+                });
+                this.classList.add('selected');
+                this.style.background = 'var(--primary)';
+                this.style.color = 'white';
+                duration = this.dataset.duration;
+            });
+        });
+
+        document.getElementById('next2').addEventListener('click', () => {
+            if (severity && duration) {
+                document.getElementById('step2').classList.remove('active');
+                document.getElementById('step3').classList.add('active');
+            } else {
+                alert('Please select severity and duration.');
+            }
+        });
+
+        document.getElementById('back2').addEventListener('click', () => {
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step1').classList.add('active');
+        });
+
+        // Step 3: Age and conditions
+        document.querySelectorAll('.age-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.age-btn').forEach(b => {
+                    b.classList.remove('selected');
+                    b.style.background = 'var(--bg-lighter)';
+                    b.style.color = 'var(--text-dark)';
+                });
+                this.classList.add('selected');
+                this.style.background = 'var(--primary)';
+                this.style.color = 'white';
+                age = this.dataset.age;
+            });
+        });
+
+        document.getElementById('back3').addEventListener('click', () => {
+            document.getElementById('step3').classList.remove('active');
+            document.getElementById('step2').classList.add('active');
+        });
+
+        document.getElementById('analyze').addEventListener('click', () => {
+            if (!age) {
+                alert('Please select an age group.');
+                return;
+            }
+            analyzeSymptoms();
+            document.getElementById('step3').classList.remove('active');
+            document.getElementById('results').classList.add('active');
+        });
+
+        function analyzeSymptoms() {
+            let riskScore = 0;
+            let riskLevel = 'low';
+            let recommendations = [];
+            let nextSteps = [];
+
+            // Emergency symptoms - immediate high risk
+            const emergencySymptoms = ['chest-pain', 'shortness-breath'];
+            if (symptoms.some(s => emergencySymptoms.includes(s))) {
+                riskScore += 10;
             }
 
-            // Provide suggested next steps and tests
-            let steps = [];
-            if(text.includes('cough') || text.includes('fever')) steps.push('Measure temperature and oxygen saturation (if you have a pulse oximeter).');
-            if(text.includes('chest pain')) steps.push('If chest pain is present, go to emergency services immediately.');
-            if(text.includes('headache') && severity!=='mild') steps.push('If severe headache with visual changes or vomiting, seek urgent care.');
-            if(text.includes('rash')) steps.push('Avoid new topical products and photograph the rash for comparison; see GP if spreading or with systemic symptoms.');
-            if(steps.length===0) steps.push('Keep symptom diary (time, severity), rest, hydrate, and use over-the-counter measures as appropriate.');
+            // High risk symptoms
+            const highRiskSymptoms = ['severe', 'dizziness', 'abdominal-pain'];
+            if (symptoms.some(s => highRiskSymptoms.includes(s)) || severity === 'severe') {
+                riskScore += 5;
+            }
 
-            // Build display
-            let out = `<p>${advice}</p>`;
-            out += '<h4>Next steps</h4><ul>' + steps.map(s=>`<li>${s}</li>`).join('') + '</ul>';
-            out += '<h4>When to get urgent help</h4><ul>' + redFlags.map(r=>`<li>${r}</li>`).join('') + '</ul>';
-            out += '<p><strong>Note:</strong> This tool does not replace a clinical assessment.</p>';
+            // Age factors
+            if (age === 'senior') {
+                riskScore += 2;
+            }
 
-            document.getElementById('result').innerHTML = out;
+            // Duration factors
+            if (duration === 'chronic') {
+                riskScore += 1;
+            }
+
+            // Determine risk level
+            if (riskScore >= 10) {
+                riskLevel = 'high';
+            } else if (riskScore >= 5) {
+                riskLevel = 'medium';
+            }
+
+            // Generate recommendations
+            if (riskLevel === 'high') {
+                recommendations.push('🚨 SEEK IMMEDIATE MEDICAL ATTENTION');
+                recommendations.push('Call emergency services (911) or go to nearest emergency room');
+                nextSteps.push('Do not wait - these symptoms require urgent evaluation');
+            } else if (riskLevel === 'medium') {
+                recommendations.push('📞 Contact your primary care physician or urgent care clinic today');
+                recommendations.push('Schedule an appointment within 24 hours');
+                nextSteps.push('Monitor your symptoms closely');
+                nextSteps.push('Keep track of when symptoms occur and any changes');
+            } else {
+                recommendations.push('🏠 Self-care at home may be appropriate');
+                recommendations.push('Rest, stay hydrated, and monitor your symptoms');
+                nextSteps.push('If symptoms persist more than 3-5 days, consult a healthcare provider');
+                nextSteps.push('Over-the-counter medications may help manage mild symptoms');
+            }
+
+            // Symptom-specific advice
+            if (symptoms.includes('fever')) {
+                nextSteps.push('Monitor temperature regularly');
+                if (severity === 'severe') {
+                    recommendations.push('High fever requires medical evaluation');
+                }
+            }
+
+            if (symptoms.includes('cough')) {
+                nextSteps.push('Stay hydrated and consider honey for cough relief');
+            }
+
+            if (symptoms.includes('rash')) {
+                nextSteps.push('Avoid scratching, use gentle moisturizers');
+            }
+
+            // Display results
+            const riskDisplay = document.getElementById('riskDisplay');
+            const riskClass = `risk-${riskLevel}`;
+            const riskText = riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1);
+
+            riskDisplay.innerHTML = `
+                <div class="risk-level ${riskClass}">
+                    Risk Level: ${riskText} (${riskScore}/15)
+                </div>
+                <h4>Recommendations:</h4>
+                <ul>${recommendations.map(r => `<li>${r}</li>`).join('')}</ul>
+            `;
+
+            document.getElementById('nextSteps').innerHTML = `
+                <h4>Suggested Next Steps:</h4>
+                <ul>${nextSteps.map(s => `<li>${s}</li>`).join('')}</ul>
+            `;
+        }
+
+        document.getElementById('restart').addEventListener('click', () => {
+            // Reset everything
+            symptoms = [];
+            severity = '';
+            duration = '';
+            age = '';
+            document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+            document.getElementById('conditions').value = '';
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('step1').classList.add('active');
         });
     </script>
 </body>

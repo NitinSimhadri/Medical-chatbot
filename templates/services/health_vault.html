@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Health Vault - MediBot AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg-light: #ffffff;
+            --bg-lighter: #f8fafc;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        body[data-theme="dark"] {
+            --bg-light: #0f172a;
+            --bg-lighter: #1e293b;
+            --text-dark: #f8fafc;
+            --text-light: #cbd5e1;
+            --border: #334155;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, var(--bg-lighter), var(--bg-light)); color: var(--text-dark); min-height: 100vh; padding: 2rem; padding-top: 6rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .navbar { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 1rem 0; }
+        body[data-theme="dark"] .navbar { background: rgba(15, 23, 42, 0.95); }
+        .navbar-content { max-width: 1400px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; }
+        .logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+        .nav-link { color: var(--text-light); text-decoration: none; font-weight: 500; }
+        .card { background: var(--bg-light); border-radius: 1rem; padding: 2rem; box-shadow: var(--shadow-md); border: 1px solid var(--border); margin-bottom: 2rem; }
+        h1, h2, h3 { color: var(--text-dark); margin-bottom: 1rem; }
+        .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .metric-card { background: var(--bg-lighter); padding: 1.5rem; border-radius: 0.75rem; text-align: center; border: 1px solid var(--border); }
+        .metric-value { font-size: 1.75rem; font-weight: 700; color: var(--primary); margin: 0.5rem 0; }
+        .metric-label { color: var(--text-light); font-size: 0.875rem; }
+        .btn { padding: 0.75rem 1.5rem; background: linear-gradient(135deg, var(--primary), #3b82f6); color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; }
+        .btn:hover { transform: translateY(-2px); }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        input, select, textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; background: var(--bg-lighter); color: var(--text-dark); font-family: 'Inter', sans-serif; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+        .vault-section { background: var(--bg-lighter); padding: 1.5rem; margin: 1rem 0; border-radius: 0.75rem; border: 1px solid var(--border); }
+        .tab-buttons { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .tab-btn { background: var(--bg-lighter); border: 1px solid var(--border); padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; color: var(--text-light); font-weight: 500; transition: all 0.2s; }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body data-theme="light">
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/" class="logo"><i class="fas fa-heartbeat"></i> MediBot AI</a>
+            <a href="/" class="nav-link">← Back to Chat</a>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>🏦 Personal Health Vault</h1>
+        <p>Your secure digital health dashboard. Track vitals, store medical reports, monitor health trends, and maintain your complete health history.</p>
+
+        <!-- Tab Navigation -->
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="showTab('dashboard')">Dashboard</button>
+            <button class="tab-btn" onclick="showTab('vitals')">Vital Signs</button>
+            <button class="tab-btn" onclick="showTab('reports')">Medical Reports</button>
+            <button class="tab-btn" onclick="showTab('appointments')">Appointments</button>
+            <button class="tab-btn" onclick="showTab('medications')">Medications</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <h3>📊 Health Overview</h3>
+
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-value" id="latestBP">--/--</div>
+                    <div class="metric-label">Latest BP</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="latestHR">--</div>
+                    <div class="metric-label">Heart Rate</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="latestWeight">--</div>
+                    <div class="metric-label">Weight (kg)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="latestBMI">--</div>
+                    <div class="metric-label">BMI</div>
+                </div>
+            </div>
+
+            <div class="vault-section">
+                <h4>📈 Recent Health Trends</h4>
+                <div id="trendsContainer">
+                    <p>Loading health trends...</p>
+                </div>
+            </div>
+
+            <div class="vault-section">
+                <h4>📅 Upcoming Appointments</h4>
+                <div id="upcomingAppointments">
+                    <p>No upcoming appointments scheduled.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vitals Tab -->
+        <div id="vitals" class="tab-content">
+            <h3>❤️ Vital Signs Tracking</h3>
+
+            <button class="add-entry-btn" onclick="toggleEntryForm('vitalsForm')">+ Add Vital Signs</button>
+
+            <div id="vitalsForm" class="entry-form">
+                <h4>Record New Vital Signs</h4>
+                <div class="form-group">
+                    <label>Blood Pressure (systolic/diastolic):</label>
+                    <input type="number" id="bpSys" placeholder="120"> / <input type="number" id="bpDia" placeholder="80"> mmHg
+                </div>
+                <div class="form-group">
+                    <label>Heart Rate:</label>
+                    <input type="number" id="heartRate" placeholder="72"> bpm
+                </div>
+                <div class="form-group">
+                    <label>Weight:</label>
+                    <input type="number" id="weight" step="0.1" placeholder="70.5"> kg
+                </div>
+                <div class="form-group">
+                    <label>Height:</label>
+                    <input type="number" id="height" step="0.01" placeholder="1.75"> meters
+                </div>
+                <div class="form-group">
+                    <label>Temperature:</label>
+                    <input type="number" id="temperature" step="0.1" placeholder="98.6"> °F
+                </div>
+                <div class="form-group">
+                    <label>Notes:</label>
+                    <textarea id="vitalsNotes" rows="2" placeholder="Any additional notes..."></textarea>
+                </div>
+                <button class="add-entry-btn" onclick="saveVitals()">Save Vitals</button>
+                <button onclick="toggleEntryForm('vitalsForm')" style="background: #6c757d; margin-left: 10px;">Cancel</button>
+            </div>
+
+            <div id="vitalsHistory">
+                <h4>Recent Vital Signs</h4>
+                <div id="vitalsList"></div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reports" class="tab-content">
+            <h3>📄 Medical Reports</h3>
+
+            <button class="add-entry-btn" onclick="toggleEntryForm('reportForm')">+ Upload Report</button>
+
+            <div id="reportForm" class="entry-form">
+                <h4>Upload Medical Report</h4>
+                <div class="form-group">
+                    <label>Report Type:</label>
+                    <select id="reportType">
+                        <option value="lab">Lab Results</option>
+                        <option value="imaging">Imaging/X-Ray</option>
+                        <option value="consultation">Doctor Consultation</option>
+                        <option value="prescription">Prescription</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Report Date:</label>
+                    <input type="date" id="reportDate">
+                </div>
+                <div class="form-group">
+                    <label>Healthcare Provider:</label>
+                    <input type="text" id="provider" placeholder="Doctor/Hospital name">
+                </div>
+                <div class="form-group">
+                    <label>Upload File:</label>
+                    <input type="file" id="reportFile" accept=".pdf,.jpg,.png,.doc,.docx">
+                </div>
+                <div class="form-group">
+                    <label>Key Findings/Summary:</label>
+                    <textarea id="reportSummary" rows="3" placeholder="Brief summary of report findings..."></textarea>
+                </div>
+                <button class="add-entry-btn" onclick="saveReport()">Save Report</button>
+                <button onclick="toggleEntryForm('reportForm')" style="background: #6c757d; margin-left: 10px;">Cancel</button>
+            </div>
+
+            <div id="reportsList">
+                <h4>Your Medical Reports</h4>
+                <div id="reportsContainer"></div>
+            </div>
+        </div>
+
+        <!-- Appointments Tab -->
+        <div id="appointments" class="tab-content">
+            <h3>📅 Appointments</h3>
+
+            <button class="add-entry-btn" onclick="toggleEntryForm('appointmentForm')">+ Schedule Appointment</button>
+
+            <div id="appointmentForm" class="entry-form">
+                <h4>Schedule New Appointment</h4>
+                <div class="form-group">
+                    <label>Appointment Type:</label>
+                    <select id="appointmentType">
+                        <option value="consultation">Doctor Consultation</option>
+                        <option value="followup">Follow-up</option>
+                        <option value="test">Medical Test</option>
+                        <option value="therapy">Therapy</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Healthcare Provider:</label>
+                    <input type="text" id="apptProvider" placeholder="Doctor/Hospital/Specialist name">
+                </div>
+                <div class="form-group">
+                    <label>Date & Time:</label>
+                    <input type="datetime-local" id="appointmentDateTime">
+                </div>
+                <div class="form-group">
+                    <label>Location:</label>
+                    <input type="text" id="appointmentLocation" placeholder="Clinic/Hospital address">
+                </div>
+                <div class="form-group">
+                    <label>Purpose/Notes:</label>
+                    <textarea id="appointmentNotes" rows="2" placeholder="Reason for appointment..."></textarea>
+                </div>
+                <button class="add-entry-btn" onclick="saveAppointment()">Save Appointment</button>
+                <button onclick="toggleEntryForm('appointmentForm')" style="background: #6c757d; margin-left: 10px;">Cancel</button>
+            </div>
+
+            <div id="appointmentsList">
+                <h4>Your Appointments</h4>
+                <div id="appointmentsContainer"></div>
+            </div>
+        </div>
+
+        <!-- Medications Tab -->
+        <div id="medications" class="tab-content">
+            <h3>💊 Medications</h3>
+
+            <button class="add-entry-btn" onclick="toggleEntryForm('medicationForm')">+ Add Medication</button>
+
+            <div id="medicationForm" class="entry-form">
+                <h4>Add New Medication</h4>
+                <div class="form-group">
+                    <label>Medication Name:</label>
+                    <input type="text" id="medicationName" placeholder="e.g., Aspirin 81mg">
+                </div>
+                <div class="form-group">
+                    <label>Dosage:</label>
+                    <input type="text" id="dosage" placeholder="e.g., 1 tablet daily">
+                </div>
+                <div class="form-group">
+                    <label>Frequency:</label>
+                    <select id="frequency">
+                        <option value="once-daily">Once daily</option>
+                        <option value="twice-daily">Twice daily</option>
+                        <option value="three-times">Three times daily</option>
+                        <option value="four-times">Four times daily</option>
+                        <option value="as-needed">As needed</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Prescribing Doctor:</label>
+                    <input type="text" id="prescribingDoctor" placeholder="Doctor's name">
+                </div>
+                <div class="form-group">
+                    <label>Start Date:</label>
+                    <input type="date" id="medStartDate">
+                </div>
+                <div class="form-group">
+                    <label>End Date (if applicable):</label>
+                    <input type="date" id="medEndDate">
+                </div>
+                <div class="form-group">
+                    <label>Purpose/Notes:</label>
+                    <textarea id="medicationNotes" rows="2" placeholder="Why prescribed, side effects, etc."></textarea>
+                </div>
+                <button class="add-entry-btn" onclick="saveMedication()">Save Medication</button>
+                <button onclick="toggleEntryForm('medicationForm')" style="background: #6c757d; margin-left: 10px;">Cancel</button>
+            </div>
+
+            <div id="medicationsList">
+                <h4>Current Medications</h4>
+                <div id="medicationsContainer"></div>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+            <h4>🔒 Privacy & Security</h4>
+            <p>Your health data is stored locally in your browser for privacy. In a production app, this would be encrypted and stored securely on HIPAA-compliant servers. Consider exporting important data regularly for backup.</p>
+            <button onclick="exportData()" style="background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Export Health Data</button>
+        </div>
+
+        <p><a href="/">Return to chat</a></p>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Load data for the tab
+            loadTabData(tabName);
+        }
+
+        function toggleEntryForm(formId) {
+            const form = document.getElementById(formId);
+            form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
+        }
+
+        // Data storage (using localStorage for demo)
+        function getStoredData(type) {
+            const data = localStorage.getItem(`health_${type}`);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveData(type, data) {
+            localStorage.setItem(`health_${type}`, JSON.stringify(data));
+        }
+
+        // Load data for each tab
+        function loadTabData(tabName) {
+            switch(tabName) {
+                case 'dashboard':
+                    loadDashboardData();
+                    break;
+                case 'vitals':
+                    loadVitalsData();
+                    break;
+                case 'reports':
+                    loadReportsData();
+                    break;
+                case 'appointments':
+                    loadAppointmentsData();
+                    break;
+                case 'medications':
+                    loadMedicationsData();
+                    break;
+            }
+        }
+
+        function loadDashboardData() {
+            const vitals = getStoredData('vitals');
+            const appointments = getStoredData('appointments');
+
+            // Show latest vitals
+            if (vitals.length > 0) {
+                const latest = vitals[vitals.length - 1];
+                document.getElementById('latestBP').textContent = latest.bpSys && latest.bpDia ? `${latest.bpSys}/${latest.bpDia}` : '--/--';
+                document.getElementById('latestHR').textContent = latest.heartRate || '--';
+                document.getElementById('latestWeight').textContent = latest.weight || '--';
+                if (latest.height && latest.weight) {
+                    const bmi = (latest.weight / (latest.height * latest.height)).toFixed(1);
+                    document.getElementById('latestBMI').textContent = bmi;
+                }
+            }
+
+            // Show upcoming appointments
+            const upcoming = appointments.filter(appt => new Date(appt.dateTime) > new Date()).sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime)).slice(0, 3);
+            const container = document.getElementById('upcomingAppointments');
+            if (upcoming.length > 0) {
+                container.innerHTML = upcoming.map(appt => `
+                    <div class="health-card">
+                        <strong>${appt.type}</strong><br>
+                        ${appt.provider}<br>
+                        ${new Date(appt.dateTime).toLocaleString()}<br>
+                        ${appt.location}
+                    </div>
+                `).join('');
+            }
+        }
+
+        function loadVitalsData() {
+            const vitals = getStoredData('vitals');
+            const container = document.getElementById('vitalsList');
+
+            if (vitals.length === 0) {
+                container.innerHTML = '<p>No vital signs recorded yet.</p>';
+                return;
+            }
+
+            container.innerHTML = vitals.slice(-10).reverse().map(vital => `
+                <div class="health-card">
+                    <strong>${new Date(vital.date).toLocaleDateString()}</strong><br>
+                    BP: ${vital.bpSys || '--'}/${vital.bpDia || '--'} mmHg |
+                    HR: ${vital.heartRate || '--'} bpm |
+                    Weight: ${vital.weight || '--'} kg<br>
+                    ${vital.notes ? `<em>${vital.notes}</em>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function saveVitals() {
+            const vital = {
+                date: new Date().toISOString(),
+                bpSys: document.getElementById('bpSys').value,
+                bpDia: document.getElementById('bpDia').value,
+                heartRate: document.getElementById('heartRate').value,
+                weight: document.getElementById('weight').value,
+                height: document.getElementById('height').value,
+                temperature: document.getElementById('temperature').value,
+                notes: document.getElementById('vitalsNotes').value
+            };
+
+            const vitals = getStoredData('vitals');
+            vitals.push(vital);
+            saveData('vitals', vitals);
+
+            // Clear form
+            document.querySelectorAll('#vitalsForm input, #vitalsForm textarea').forEach(input => input.value = '');
+            toggleEntryForm('vitalsForm');
+
+            // Reload data
+            loadVitalsData();
+            loadDashboardData();
+
+            alert('Vital signs saved successfully!');
+        }
+
+        function loadReportsData() {
+            const reports = getStoredData('reports');
+            const container = document.getElementById('reportsContainer');
+
+            if (reports.length === 0) {
+                container.innerHTML = '<p>No medical reports uploaded yet.</p>';
+                return;
+            }
+
+            container.innerHTML = reports.reverse().map(report => `
+                <div class="health-card">
+                    <strong>${report.type}</strong> - ${new Date(report.date).toLocaleDateString()}<br>
+                    Provider: ${report.provider}<br>
+                    ${report.summary ? `<em>${report.summary}</em>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function saveReport() {
+            const report = {
+                type: document.getElementById('reportType').value,
+                date: document.getElementById('reportDate').value,
+                provider: document.getElementById('provider').value,
+                summary: document.getElementById('reportSummary').value,
+                fileName: document.getElementById('reportFile').files[0]?.name || 'No file uploaded'
+            };
+
+            const reports = getStoredData('reports');
+            reports.push(report);
+            saveData('reports', reports);
+
+            // Clear form
+            document.querySelectorAll('#reportForm input, #reportForm textarea, #reportForm select').forEach(input => input.value = '');
+            toggleEntryForm('reportForm');
+
+            // Reload data
+            loadReportsData();
+
+            alert('Medical report saved successfully!');
+        }
+
+        function loadAppointmentsData() {
+            const appointments = getStoredData('appointments');
+            const container = document.getElementById('appointmentsContainer');
+
+            if (appointments.length === 0) {
+                container.innerHTML = '<p>No appointments scheduled yet.</p>';
+                return;
+            }
+
+            container.innerHTML = appointments.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime)).map(appt => `
+                <div class="health-card">
+                    <strong>${appt.type}</strong><br>
+                    ${appt.provider}<br>
+                    ${new Date(appt.dateTime).toLocaleString()}<br>
+                    ${appt.location}<br>
+                    ${appt.notes ? `<em>${appt.notes}</em>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function saveAppointment() {
+            const appointment = {
+                type: document.getElementById('appointmentType').value,
+                provider: document.getElementById('apptProvider').value,
+                dateTime: document.getElementById('appointmentDateTime').value,
+                location: document.getElementById('appointmentLocation').value,
+                notes: document.getElementById('appointmentNotes').value
+            };
+
+            const appointments = getStoredData('appointments');
+            appointments.push(appointment);
+            saveData('appointments', appointments);
+
+            // Clear form
+            document.querySelectorAll('#appointmentForm input, #appointmentForm textarea, #appointmentForm select').forEach(input => input.value = '');
+            toggleEntryForm('appointmentForm');
+
+            // Reload data
+            loadAppointmentsData();
+            loadDashboardData();
+
+            alert('Appointment scheduled successfully!');
+        }
+
+        function loadMedicationsData() {
+            const medications = getStoredData('medications');
+            const container = document.getElementById('medicationsContainer');
+
+            if (medications.length === 0) {
+                container.innerHTML = '<p>No medications recorded yet.</p>';
+                return;
+            }
+
+            container.innerHTML = medications.filter(med => !med.endDate || new Date(med.endDate) > new Date()).map(med => `
+                <div class="health-card">
+                    <strong>${med.name}</strong><br>
+                    Dosage: ${med.dosage} | Frequency: ${med.frequency}<br>
+                    Prescribed by: ${med.doctor}<br>
+                    Started: ${new Date(med.startDate).toLocaleDateString()}<br>
+                    ${med.notes ? `<em>${med.notes}</em>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function saveMedication() {
+            const medication = {
+                name: document.getElementById('medicationName').value,
+                dosage: document.getElementById('dosage').value,
+                frequency: document.getElementById('frequency').value,
+                doctor: document.getElementById('prescribingDoctor').value,
+                startDate: document.getElementById('medStartDate').value,
+                endDate: document.getElementById('medEndDate').value,
+                notes: document.getElementById('medicationNotes').value
+            };
+
+            const medications = getStoredData('medications');
+            medications.push(medication);
+            saveData('medications', medications);
+
+            // Clear form
+            document.querySelectorAll('#medicationForm input, #medicationForm textarea, #medicationForm select').forEach(input => input.value = '');
+            toggleEntryForm('medicationForm');
+
+            // Reload data
+            loadMedicationsData();
+
+            alert('Medication saved successfully!');
+        }
+
+        function exportData() {
+            const data = {
+                vitals: getStoredData('vitals'),
+                reports: getStoredData('reports'),
+                appointments: getStoredData('appointments'),
+                medications: getStoredData('medications'),
+                exportDate: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `health_data_export_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize dashboard on page load
+        loadDashboardData();
+    </script>
+</body>
+</html>

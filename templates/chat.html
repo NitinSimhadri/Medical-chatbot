@@ -1,164 +1,916 @@
-<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-
 <!DOCTYPE html>
-<html>
-	<head>
-		<title>Chatbot</title>
-		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
-	</head>
-	
-	
-	<body>
-		<div style="position:fixed; top:12px; right:20px; z-index:50;">
-			<a href="/about" style="color:rgba(255,255,255,0.85); margin-right:12px; text-decoration:none; font-weight:600;">About</a>
-			<a href="/disclaimer" style="color:rgba(255,255,255,0.85); text-decoration:none; font-weight:600; margin-right:12px;">Disclaimer</a>
-			<!-- Service icons menu -->
-			<a href="/services/bp-hr" title="BP & Heart Rate" style="color:rgba(255,255,255,0.9); margin-right:8px;"><i class="fas fa-heartbeat"></i></a>
-			<a href="/services/bmi" title="BMI Calculator" style="color:rgba(255,255,255,0.9); margin-right:8px;"><i class="fas fa-weight"></i></a>
-			<a href="/services/diet" title="Diet Planner" style="color:rgba(255,255,255,0.9); margin-right:8px;"><i class="fas fa-utensils"></i></a>
-			<a href="/services/skin" title="Skin & Hair" style="color:rgba(255,255,255,0.9); margin-right:8px;"><i class="fas fa-leaf"></i></a>
-		</div>
-		<div class="container-fluid h-100">
-			<div class="row justify-content-center h-100">		
-				<div class="col-md-8 col-xl-6 chat">
-					<div class="card">
-						<div class="card-header msg_head">
-							<div class="d-flex bd-highlight">
-								<div class="img_cont">
-									<img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img">
-									<!-- <img src="https://www.prdistribution.com/spirit/uploads/pressreleases/2019/newsreleases/d83341deb75c4c4f6b113f27b1e42cd8-chatbot-florence-already-helps-thousands-of-patients-to-remember-their-medication.png" class="rounded-circle user_img"> -->
-									<span class="online_icon"></span>
-								</div>
-								<div class="user_info">
-									<span>Medical Chatbot</span>
-									<p>Ask me anything!</p>
-								</div>
-								</div>
-								<!-- Inline rotating quote (below title, above services) -->
-								<div id="quoteInlineContainerHeader">
-									<div id="quoteBox" class="quote-inline">Be positive — you're doing great!</div>
-								</div>
-								<!-- Service labels -->
-								<div style="margin-top:12px; width:100%;" class="service-buttons">
-									<a class="service-btn" href="/services/bp-hr">BP & Heart Rate</a>
-									<a class="service-btn" href="/services/bmi">BMI Calculator</a>
-									<a class="service-btn" href="/services/diet">Diet Planner</a>
-									<a class="service-btn" href="/services/skin">Skin & Hair Care</a>
-									<a class="service-btn" href="/services/symptom">Symptom Checker</a>
-									<a class="service-btn" href="/services/more">More Services</a>
-								</div>
-							</div>
-						</div>
-						<div id="messageFormeight" class="card-body msg_card_body">
-							
-							
-						</div>
-						<div class="card-footer">
-							<form id="messageArea" class="input-group">
-								<input type="file" id="chat_image" accept="image/*" style="display:none;" />
-								<button type="button" id="pickImage" class="input-group-text send_btn" title="Attach image" style="margin-right:8px;">
-									<i class="fas fa-image"></i>
-								</button>
-								<input type="text" id="text" name="msg" placeholder="Type your message..." autocomplete="off" class="form-control type_msg" />
-								<div class="input-group-append">
-									<button type="submit" id="send" class="input-group-text send_btn"><i class="fas fa-location-arrow"></i></button>
-								</div>
-							</form>
-							<div id="chatImagePreview" style="max-width:220px;margin-top:8px;display:none;"></div>
-						</div>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediBot AI - Your Medical Assistant</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --primary-light: #3b82f6;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-light: #ffffff;
+            --bg-lighter: #f8fafc;
+            --bg-lightest: #f1f5f9;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --text-lighter: #94a3b8;
+            --border: #e2e8f0;
+            --shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        body[data-theme="dark"] {
+            --bg-light: #0f172a;
+            --bg-lighter: #1e293b;
+            --bg-lightest: #334155;
+            --text-dark: #f8fafc;
+            --text-light: #cbd5e1;
+            --text-lighter: #64748b;
+            --border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-lighter) 0%, var(--bg-light) 100%);
+            color: var(--text-dark);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+
+        body[data-theme="dark"] .navbar {
+            background: rgba(15, 23, 42, 0.95);
+        }
+
+        .navbar-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            -webkit-text-fill-color: var(--primary);
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .nav-link {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+            background: var(--bg-lightest);
+        }
+
+        .theme-toggle {
+            background: var(--bg-lightest);
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0.6rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--border);
+            transform: scale(1.1);
+        }
+
+        .logout-btn {
+            color: var(--danger) !important;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.1) !important;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            padding-top: 8rem;
+            height: 100%;
+        }
+
+        .chat-wrapper {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+            height: calc(100vh - 10rem);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--bg-light);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .services-grid {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .service-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-lighter);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .service-item:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateX(4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .service-icon {
+            font-size: 1rem;
+            width: 1.5rem;
+            text-align: center;
+        }
+
+        /* Chat Main */
+        .chat-main {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-light);
+            border-radius: 1rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .chat-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(37, 99, 235, 0.02));
+        }
+
+        .chat-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .chat-subtitle {
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+
+        /* Messages */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            display: flex;
+            gap: 0.75rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-avatar {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .message.bot .message-avatar {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+        }
+
+        .message.user .message-avatar {
+            background: var(--bg-lighter);
+            color: var(--primary);
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+            font-size: 0.875rem;
+        }
+
+        .message.bot .message-content {
+            background: var(--bg-lighter);
+            color: var(--text-dark);
+            border-left: 3px solid var(--primary);
+        }
+
+        .message.user .message-content {
+            background: var(--primary);
+            color: white;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-lighter);
+            border-radius: 0.75rem;
+            width: fit-content;
+        }
+
+        .typing-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background: var(--text-lighter);
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        /* Input Area */
+        .input-area {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            background: var(--bg-lighter);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            font-size: 0.875rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .message-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .message-input::placeholder {
+            color: var(--text-lighter);
+        }
+
+        .send-btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Scrollbar */
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: var(--text-lighter);
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .chat-wrapper {
+                grid-template-columns: 200px 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .chat-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+                position: fixed;
+                left: 0;
+                top: 70px;
+                width: 100%;
+                height: calc(100vh - 70px);
+                border-radius: 0;
+                z-index: 999;
+            }
+
+            .sidebar.active {
+                display: block;
+            }
+
+            .navbar-content {
+                padding: 0 1rem;
+            }
+
+            .container {
+                padding: 1rem;
+                padding-top: 6rem;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/" class="logo">
+                <i class="fas fa-heartbeat"></i> MediBot AI
+            </a>
+            <div class="navbar-right">
+                <a href="/about" class="nav-link">About</a>
+                <a href="/disclaimer" class="nav-link">Disclaimer</a>
+                <button class="theme-toggle" id="themeToggle" title="Toggle dark/light theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <a href="/logout" class="nav-link logout-btn">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="chat-wrapper">
+            <!-- Sidebar Services -->
+            <aside class="sidebar">
+                <h3 class="sidebar-title">
+                    <i class="fas fa-stethoscope"></i> Services
+                </h3>
+                <div class="services-grid">
+                    <!-- Core Medical Services -->
+                    <a href="/services/symptom" class="service-item">
+                        <i class="fas fa-magnifying-glass-chart service-icon"></i>
+                        <span>Symptom Checker</span>
+                    </a>
+                    <a href="/services/medication" class="service-item">
+                        <i class="fas fa-pills service-icon"></i>
+                        <span>Medication Tracker</span>
+                    </a>
+                    <a href="/services/prescription" class="service-item">
+                        <i class="fas fa-file-prescription service-icon"></i>
+                        <span>Prescription AI</span>
+                    </a>
+                    <a href="/services/summarizer" class="service-item">
+                        <i class="fas fa-file-export service-icon"></i>
+                        <span>Medical Summarizer</span>
+                    </a>
+
+                    <!-- Health Monitoring -->
+                    <a href="/services/bp-hr" class="service-item">
+                        <i class="fas fa-heartbeat service-icon"></i>
+                        <span>BP & Heart Rate</span>
+                    </a>
+                    <a href="/services/bmi" class="service-item">
+                        <i class="fas fa-weight service-icon"></i>
+                        <span>BMI Calculator</span>
+                    </a>
+                    <a href="/services/vitals" class="service-item">
+                        <i class="fas fa-chart-line service-icon"></i>
+                        <span>Health Analytics</span>
+                    </a>
+
+                    <!-- Lifestyle Services -->
+                    <a href="/services/diet" class="service-item">
+                        <i class="fas fa-utensils service-icon"></i>
+                        <span>Diet Planner</span>
+                    </a>
+                    <a href="/services/skin" class="service-item">
+                        <i class="fas fa-leaf service-icon"></i>
+                        <span>Skin & Hair Care</span>
+                    </a>
+
+                    <!-- Healthcare Services -->
+                    <a href="/services/appointment" class="service-item">
+                        <i class="fas fa-calendar-check service-icon"></i>
+                        <span>Book Appointment</span>
+                    </a>
+                    <a href="/services/reminder" class="service-item">
+                        <i class="fas fa-bell service-icon"></i>
+                        <span>Set Reminders</span>
+                    </a>
+
+                    <!-- Data Management -->
+                    <a href="/services/health_vault" class="service-item">
+                        <i class="fas fa-database service-icon"></i>
+                        <span>Health Vault</span>
+                    </a>
+                    <a href="/services/history" class="service-item">
+                        <i class="fas fa-history service-icon"></i>
+                        <span>Chat History</span>
+                    </a>
+                </div>
+            </aside>
+
+            <!-- Chat Main Area -->
+            <main class="chat-main">
+                <!-- Chat Header -->
+                <div class="chat-header">
+                    <h1 class="chat-title">Medical Assistant</h1>
+                    <p class="chat-subtitle">Your 24/7 AI-powered health companion</p>
+                </div>
+
+                <!-- Messages Container -->
+                <div class="messages-container" id="messagesContainer">
+                    <div class="message bot">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <strong>Welcome to MediBot AI!</strong><br>
+                            I'm your personal AI medical assistant. I can help you with:<br>
+                            ✓ Symptom checking and health analysis<br>
+                            ✓ Medication tracking and reminders<br>
+                            ✓ Health monitoring (BP, heart rate, BMI)<br>
+                            ✓ Personalized diet and wellness plans<br>
+                            ✓ Doctor appointment booking<br>
+                            ✓ Medical prescription analysis<br><br>
+                            How can I assist you today?
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typing Indicator -->
+                <div class="typing-indicator" id="typingIndicator">
+                    <span>MediBot is typing</span>
+                    <div style="display: flex; gap: 0.25rem;">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="input-area">
+                    <form class="input-group" id="messageForm">
+                        <input 
+                            type="text" 
+                            class="message-input" 
+                            id="messageInput" 
+                            placeholder="Ask me about your health, symptoms, medications..." 
+                            autocomplete="off"
+                            required
+                        >
+                        <button type="button" id="uploadImageBtn" class="send-btn" title="Upload and analyze image">
+                            <i class="fas fa-image"></i>
+                        </button>
+                        <button type="submit" class="send-btn" id="sendBtn">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </form>
+                    <input type="file" id="imageFileInput" accept="image/*" style="display:none;">
+                    <div id="imagePreview" style="margin-top:0.75rem; padding:0.75rem; background:var(--bg-lighter); border-radius:0.75rem; display:none;">
+                        <div style="margin-bottom:0.5rem;">
+                            <img id="previewImage" style="max-width:100%; max-height:150px; border-radius:0.5rem;">
+                        </div>
+                        <button type="button" id="analyzeImageBtn" class="send-btn" style="width:100%; margin-bottom:0.5rem;">
+                            <i class="fas fa-search"></i> Analyze Image
+                        </button>
+                        <button type="button" id="cancelImageBtn" class="send-btn" style="width:100%; background:var(--danger-color);">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const body = document.body;
+            const messageForm = document.getElementById('messageForm');
+            const messageInput = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const messagesContainer = document.getElementById('messagesContainer');
+            const typingIndicator = document.getElementById('typingIndicator');
+
+            // Theme Toggle - Fixed Version
+            function loadTheme() {
+                const savedTheme = localStorage.getItem('medibot-theme') || 'light';
+                body.setAttribute('data-theme', savedTheme);
+                updateThemeIcon(savedTheme);
+            }
+
+            function updateThemeIcon(theme) {
+                const icon = themeToggle.querySelector('i');
+                if (theme === 'dark') {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                }
+            }
+
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = body.getAttribute('data-theme');
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                
+                body.setAttribute('data-theme', newTheme);
+                localStorage.setItem('medibot-theme', newTheme);
+                updateThemeIcon(newTheme);
+            });
+
+            // Load theme on page load
+            loadTheme();
+
+            // Auto-scroll to bottom
+            function scrollToBottom() {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            // Add message to chat
+            function addMessage(text, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+                
+                if (isUser) {
+                    messageDiv.innerHTML = `
+                        <div class="message-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="message-content">${text}</div>
+                    `;
+                } else {
+                    messageDiv.innerHTML = `
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">${text}</div>
+                    `;
+                }
+                
+                messagesContainer.appendChild(messageDiv);
+                scrollToBottom();
+            }
+
+            // Handle form submission
+            messageForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const message = messageInput.value.trim();
+                if (!message) return;
+
+                // Add user message
+                addMessage(message, true);
+                messageInput.value = '';
+
+                // Show typing indicator
+                typingIndicator.style.display = 'flex';
+                scrollToBottom();
+
+                // Disable input
+                messageInput.disabled = true;
+                sendBtn.disabled = true;
+
+                // Send to server with timeout
+                const timeout = setTimeout(() => {
+                    typingIndicator.style.display = 'none';
+                    addMessage('Request timed out. Please try again or check your connection.', false);
+                    messageInput.disabled = false;
+                    sendBtn.disabled = false;
+                    messageInput.focus();
+                }, 15000);
+
+                $.ajax({
+                    url: '/get',
+                    type: 'POST',
+                    data: { msg: message },
+                    timeout: 15000,
+                    success: function(response) {
+                        clearTimeout(timeout);
+                        typingIndicator.style.display = 'none';
+                        if (response && response.trim()) {
+                            addMessage(response.replace(/\n/g, '<br>'), false);
+                        } else {
+                            addMessage('No response received. Please try again.', false);
+                        }
                         
-					</div>
-				</div>
-			</div>
-		</div>
-		
-		<script>
-			// rotating motivational quotes and chat image prompt handling
-			const QUOTES = [
-				"Stay positive — small steps every day.",
-				"Take care of your body; it's the only place you live.",
-				"Consistency matters more than perfection.",
-				"Hydrate, rest, repeat — your health is an investment.",
-				"Talk to a professional for medical concerns — be safe."
-			];
-			let qi = 0;
-			const qb = document.getElementById('quoteBox');
-			// initial style
-			qb.style.opacity = 1;
-			qb.style.transition = 'opacity 600ms ease';
-			setInterval(()=>{
-				// fade out, change text, fade in for smooth transition
-				qb.style.opacity = 0;
-				setTimeout(()=>{
-					qi = (qi + 1) % QUOTES.length;
-					qb.innerText = QUOTES[qi];
-					qb.style.opacity = 1;
-				}, 600);
-			}, 10000);
+                        messageInput.disabled = false;
+                        sendBtn.disabled = false;
+                        messageInput.focus();
+                    },
+                    error: function(xhr, status, error) {
+                        clearTimeout(timeout);
+                        typingIndicator.style.display = 'none';
+                        
+                        let errorMsg = 'Sorry, I encountered an error. Please try again.';
+                        if (status === 'timeout') {
+                            errorMsg = 'Request timed out. Please check your connection and try again.';
+                        } else if (xhr.status === 0) {
+                            errorMsg = 'Network error. Please check your internet connection.';
+                        } else if (xhr.status === 404) {
+                            errorMsg = 'Service not found. Please refresh the page.';
+                        } else if (xhr.status === 500) {
+                            errorMsg = 'Server error. Please try again later.';
+                        }
+                        
+                        addMessage(errorMsg, false);
+                        
+                        messageInput.disabled = false;
+                        sendBtn.disabled = false;
+                        messageInput.focus();
+                        
+                        console.error('Chat error:', status, error);
+                    }
+                });
+            });
 
-			// Image pick and preview — client-side only, generates a suggested prompt
-			document.getElementById('pickImage').addEventListener('click', ()=>{
-				document.getElementById('chat_image').click();
-			});
+            // Focus input on load
+            messageInput.focus();
 
-			document.getElementById('chat_image').addEventListener('change', function(){
-				const f = this.files[0];
-				if(!f) return;
-				const url = URL.createObjectURL(f);
-				document.getElementById('chatImagePreview').style.display = 'block';
-				document.getElementById('chatImagePreview').innerHTML = `<img src="${url}" style="max-width:220px;border-radius:8px;"/>`;
-				// generate a suggested prompt for the image (client-side only)
-				const suggestion = `Suggested image prompt: Describe visible features in the image, possible causes, and non-diagnostic care advice. Mention if specialist referral is recommended.`;
-				// show suggestion briefly under preview
-				const s = document.createElement('div'); s.style.color='rgba(255,255,255,0.8)'; s.style.marginTop='6px'; s.innerText = suggestion;
-				document.getElementById('chatImagePreview').appendChild(s);
-				// add a copy button to copy suggestion to chat input
-				const copyBtn = document.createElement('button');
-				copyBtn.type = 'button';
-				copyBtn.innerText = 'Copy prompt';
-				copyBtn.style.marginTop = '8px';
-				copyBtn.className = 'service-btn';
-				copyBtn.addEventListener('click', function(){
-					navigator.clipboard.writeText(suggestion).then(()=>{
-						// also populate chat input
-						document.getElementById('text').value = suggestion;
-					});
-				});
-				document.getElementById('chatImagePreview').appendChild(copyBtn);
-			});
+            // Image upload handling
+            const uploadImageBtn = document.getElementById('uploadImageBtn');
+            const imageFileInput = document.getElementById('imageFileInput');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImage = document.getElementById('previewImage');
+            const analyzeImageBtn = document.getElementById('analyzeImageBtn');
+            const cancelImageBtn = document.getElementById('cancelImageBtn');
 
-			$(document).ready(function() {
-				$("#messageArea").on("submit", function(event) {
-					const date = new Date();
-					const hour = date.getHours();
-					const minute = date.getMinutes();
-					const str_time = hour+":"+minute;
-					var rawText = $("#text").val();
+            uploadImageBtn.addEventListener('click', () => {
+                imageFileInput.click();
+            });
 
-					var userHtml = '<div class="d-flex justify-content-end mb-4"><div class="msg_cotainer_send">' + rawText + '<span class="msg_time_send">'+ str_time + '</span></div><div class="img_cont_msg"><img src="https://i.ibb.co/d5b84Xw/Untitled-design.png" class="rounded-circle user_img_msg"></div></div>';
-					
-					$("#text").val("");
-					$("#messageFormeight").append(userHtml);
+            imageFileInput.addEventListener('change', function(e) {
+                const file = this.files[0];
+                if (!file) return;
 
-					$.ajax({
-						data: {
-							msg: rawText,	
-						},
-						type: "POST",
-						url: "/get",
-					}).done(function(data) {
-						var botHtml = '<div class="d-flex justify-content-start mb-4"><div class="img_cont_msg"><img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg"></div><div class="msg_cotainer">' + data + '<span class="msg_time">' + str_time + '</span></div></div>';
-						$("#messageFormeight").append($.parseHTML(botHtml));
-					});
-					event.preventDefault();
-				});
-			});
-		</script>
-        
-    </body>
+                // Check file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    addMessage('⚠️ Image is too large. Please use an image smaller than 5MB.', false);
+                    return;
+                }
+
+                // Check file type
+                if (!file.type.startsWith('image/')) {
+                    addMessage('⚠️ Please select a valid image file.', false);
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            });
+
+            analyzeImageBtn.addEventListener('click', function() {
+                const file = imageFileInput.files[0];
+                if (!file) return;
+
+                addMessage('📷 Analyzing image...', true);
+                typingIndicator.style.display = 'flex';
+                scrollToBottom();
+
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('prompt', messageInput.value || 'Please analyze this medical image');
+
+                $.ajax({
+                    url: '/analyze-image',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    timeout: 30000,
+                    success: function(response) {
+                        typingIndicator.style.display = 'none';
+                        if (response.success) {
+                            addMessage(response.analysis, false);
+                            imagePreview.style.display = 'none';
+                            imageFileInput.value = '';
+                            messageInput.value = '';
+                        } else {
+                            addMessage('Failed to analyze image: ' + (response.error || 'Unknown error'), false);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        typingIndicator.style.display = 'none';
+                        let errorMsg = 'Failed to analyze image. Please try again.';
+                        if (status === 'timeout') {
+                            errorMsg = 'Image analysis timed out. Please try with a smaller image.';
+                        }
+                        addMessage(errorMsg, false);
+                    }
+                });
+            });
+
+            cancelImageBtn.addEventListener('click', function() {
+                imagePreview.style.display = 'none';
+                imageFileInput.value = '';
+            });
+
+            // Hospital search - triggered by keywords in chat
+            window.findHospitals = function(location, specialty) {
+                $.ajax({
+                    url: '/find-hospitals',
+                    type: 'POST',
+                    data: JSON.stringify({ location: location, specialty: specialty }),
+                    contentType: 'application/json',
+                    timeout: 10000,
+                    success: function(response) {
+                        if (response.success && response.hospitals.length > 0) {
+                            let hospitalList = `<strong>🏥 Hospitals in ${response.location}:</strong><br>`;
+                            response.hospitals.forEach((hospital, index) => {
+                                hospitalList += `<br><strong>${index + 1}. ${hospital.name}</strong><br>`;
+                                hospitalList += `📍 ${hospital.address}<br>`;
+                                hospitalList += `📞 ${hospital.phone}<br>`;
+                                hospitalList += `⭐ Rating: ${hospital.rating}/5<br>`;
+                                hospitalList += `📏 Distance: ${hospital.distance}<br>`;
+                                hospitalList += `🏷️ Specialties: ${hospital.specialties.join(', ')}<br>`;
+                            });
+                            addMessage(hospitalList, false);
+                        } else {
+                            addMessage(response.message || 'No hospitals found in that location.', false);
+                        }
+                    },
+                    error: function() {
+                        addMessage('Failed to find hospitals. Please try again.', false);
+                    }
+                });
+            };
+
+            // Check for hospital search keywords in user messages
+            const originalAddMessage = addMessage;
+            window.addMessage = function(text, isUser) {
+                originalAddMessage(text, isUser);
+                
+                if (isUser) {
+                    const lowerText = text.toLowerCase();
+                    if (lowerText.includes('hospital') || lowerText.includes('clinic') || lowerText.includes('doctor near')) {
+                        if (lowerText.includes('delhi')) window.findHospitals('delhi', '');
+                        else if (lowerText.includes('mumbai')) window.findHospitals('mumbai', '');
+                        else if (lowerText.includes('bangalore')) window.findHospitals('bangalore', '');
+                    }
+                }
+            };
+        });
+    </script>
+</body>
 </html>

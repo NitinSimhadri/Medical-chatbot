@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Medical Report Generator - MediBot AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg-light: #ffffff;
+            --bg-lighter: #f8fafc;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        body[data-theme="dark"] {
+            --bg-light: #0f172a;
+            --bg-lighter: #1e293b;
+            --text-dark: #f8fafc;
+            --text-light: #cbd5e1;
+            --border: #334155;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, var(--bg-lighter), var(--bg-light)); color: var(--text-dark); min-height: 100vh; padding: 2rem; padding-top: 6rem; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .navbar { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 1rem 0; }
+        body[data-theme="dark"] .navbar { background: rgba(15, 23, 42, 0.95); }
+        .navbar-content { max-width: 1400px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; }
+        .logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+        .nav-link { color: var(--text-light); text-decoration: none; font-weight: 500; }
+        .card { background: var(--bg-light); border-radius: 1rem; padding: 2rem; box-shadow: var(--shadow-md); border: 1px solid var(--border); margin-bottom: 2rem; }
+        h1, h2, h3 { color: var(--text-dark); margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        input, select, textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; background: var(--bg-lighter); color: var(--text-dark); font-family: 'Inter', sans-serif; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+        .btn { padding: 0.75rem 1.5rem; background: linear-gradient(135deg, var(--primary), #3b82f6); color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; }
+        .btn:hover { transform: translateY(-2px); }
+        .report-output { background: var(--bg-lighter); padding: 1.5rem; border-radius: 0.75rem; border: 1px solid var(--border); margin: 1.5rem 0; }
+        .risk-indicator { padding: 0.75rem 1rem; border-radius: 0.5rem; font-weight: 600; margin: 0.5rem 0; }
+        .risk-low { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .risk-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .risk-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+    </style>
+</head>
+<body data-theme="light">
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/" class="logo"><i class="fas fa-heartbeat"></i> MediBot AI</a>
+            <a href="/" class="nav-link">← Back to Chat</a>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>📄 AI Medical Report Generator</h1>
+        <p>Generate comprehensive PDF medical reports from your health data. Upload lab values, vitals, or symptoms for AI-powered analysis and personalized health insights.</p>
+
+        <div class="report-section">
+            <h3>📊 Vital Signs & Measurements</h3>
+            <div class="input-group">
+                <label>Blood Pressure (systolic/diastolic):</label>
+                <input type="number" id="bp_systolic" placeholder="120" min="80" max="250"> / <input type="number" id="bp_diastolic" placeholder="80" min="50" max="150"> mmHg
+            </div>
+            <div class="input-group">
+                <label>Heart Rate (bpm):</label>
+                <input type="number" id="heart_rate" placeholder="72" min="40" max="200">
+            </div>
+            <div class="input-group">
+                <label>Blood Sugar (mg/dL):</label>
+                <input type="number" id="blood_sugar" placeholder="100" min="50" max="500">
+                <select id="sugar_type">
+                    <option value="fasting">Fasting</option>
+                    <option value="postprandial">Post-Meal (2h)</option>
+                    <option value="random">Random</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Cholesterol (mg/dL):</label>
+                <input type="number" id="cholesterol" placeholder="200" min="100" max="400">
+            </div>
+            <div class="input-group">
+                <label>BMI:</label>
+                <input type="number" id="bmi" placeholder="22.5" step="0.1" min="10" max="50">
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h3>🧪 Lab Values (Optional)</h3>
+            <div class="input-group">
+                <label>Hemoglobin (g/dL):</label>
+                <input type="number" id="hemoglobin" placeholder="14.0" step="0.1" min="5" max="20">
+            </div>
+            <div class="input-group">
+                <label>White Blood Cell Count (×10³/µL):</label>
+                <input type="number" id="wbc" placeholder="7.5" step="0.1" min="1" max="30">
+            </div>
+            <div class="input-group">
+                <label>Platelet Count (×10³/µL):</label>
+                <input type="number" id="platelets" placeholder="250" min="50" max="500">
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h3>👤 Personal Information</h3>
+            <div class="input-group">
+                <label>Age:</label>
+                <input type="number" id="age" placeholder="30" min="1" max="120">
+            </div>
+            <div class="input-group">
+                <label>Gender:</label>
+                <select id="gender">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Current Symptoms (optional):</label>
+                <textarea id="symptoms" placeholder="e.g., mild headache, occasional fatigue" rows="3" style="width:100%; padding:8px; border-radius:4px; border:none;"></textarea>
+            </div>
+        </div>
+
+        <button class="generate-btn" onclick="generateReport()">Generate Medical Report</button>
+
+        <div id="reportOutput" style="display:none;">
+            <h3>📋 Your Medical Report</h3>
+            <div class="report-output">
+                <div id="reportContent"></div>
+                <button onclick="downloadPDF()" style="margin-top:15px; background:#007bff; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Download PDF Report</button>
+            </div>
+        </div>
+
+        <div style="margin-top:30px; padding:15px; background:rgba(255,255,255,0.1); border-radius:5px;">
+            <h4>⚠️ Important Disclaimer</h4>
+            <p>This AI-generated report is for informational purposes only and does not constitute medical advice, diagnosis, or treatment. Always consult with qualified healthcare professionals for proper medical evaluation and treatment decisions.</p>
+        </div>
+
+        <p><a href="/">Return to chat</a></p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        function generateReport() {
+            // Get all input values
+            const data = {
+                bp_systolic: parseInt(document.getElementById('bp_systolic').value) || null,
+                bp_diastolic: parseInt(document.getElementById('bp_diastolic').value) || null,
+                heart_rate: parseInt(document.getElementById('heart_rate').value) || null,
+                blood_sugar: parseInt(document.getElementById('blood_sugar').value) || null,
+                sugar_type: document.getElementById('sugar_type').value,
+                cholesterol: parseInt(document.getElementById('cholesterol').value) || null,
+                bmi: parseFloat(document.getElementById('bmi').value) || null,
+                hemoglobin: parseFloat(document.getElementById('hemoglobin').value) || null,
+                wbc: parseFloat(document.getElementById('wbc').value) || null,
+                platelets: parseInt(document.getElementById('platelets').value) || null,
+                age: parseInt(document.getElementById('age').value) || null,
+                gender: document.getElementById('gender').value,
+                symptoms: document.getElementById('symptoms').value.trim()
+            };
+
+            // Generate analysis
+            const analysis = analyzeHealthData(data);
+
+            // Display report
+            document.getElementById('reportContent').innerHTML = analysis;
+            document.getElementById('reportOutput').style.display = 'block';
+            document.getElementById('reportOutput').scrollIntoView({behavior: 'smooth'});
+        }
+
+        function analyzeHealthData(data) {
+            let report = `<h2>AI Health Analysis Report</h2>`;
+            report += `<p><strong>Generated on:</strong> ${new Date().toLocaleDateString()}</p>`;
+            report += `<p><strong>Patient Age:</strong> ${data.age || 'Not provided'}</p>`;
+            report += `<p><strong>Gender:</strong> ${data.gender}</p><hr>`;
+
+            let overallRisk = 'low';
+            let findings = [];
+            let recommendations = [];
+
+            // Blood Pressure Analysis
+            if (data.bp_systolic && data.bp_diastolic) {
+                let bpRisk = 'normal';
+                if (data.bp_systolic >= 180 || data.bp_diastolic >= 120) {
+                    bpRisk = 'crisis';
+                    overallRisk = 'high';
+                } else if (data.bp_systolic >= 140 || data.bp_diastolic >= 90) {
+                    bpRisk = 'high';
+                    if (overallRisk !== 'high') overallRisk = 'medium';
+                } else if (data.bp_systolic >= 130 || data.bp_diastolic >= 80) {
+                    bpRisk = 'elevated';
+                }
+
+                findings.push(`<strong>Blood Pressure:</strong> ${data.bp_systolic}/${data.bp_diastolic} mmHg - ${bpRisk.toUpperCase()}`);
+                if (bpRisk === 'crisis') {
+                    recommendations.push('🚨 EMERGENCY: Seek immediate medical attention for hypertensive crisis');
+                } else if (bpRisk === 'high') {
+                    recommendations.push('Consult healthcare provider for hypertension management');
+                }
+            }
+
+            // Heart Rate Analysis
+            if (data.heart_rate) {
+                let hrStatus = 'normal';
+                if (data.heart_rate < 60) hrStatus = 'low (bradycardia)';
+                else if (data.heart_rate > 100) hrStatus = 'high (tachycardia)';
+
+                findings.push(`<strong>Heart Rate:</strong> ${data.heart_rate} bpm - ${hrStatus}`);
+                if (hrStatus !== 'normal') {
+                    recommendations.push('Discuss heart rate with healthcare provider');
+                }
+            }
+
+            // Blood Sugar Analysis
+            if (data.blood_sugar) {
+                let sugarRisk = 'normal';
+                let normalRange = '70-100 mg/dL';
+
+                if (data.sugar_type === 'fasting') {
+                    normalRange = '70-100 mg/dL';
+                    if (data.blood_sugar > 126) sugarRisk = 'high';
+                    else if (data.blood_sugar < 70) sugarRisk = 'low';
+                } else if (data.sugar_type === 'postprandial') {
+                    normalRange = '< 140 mg/dL';
+                    if (data.blood_sugar > 200) sugarRisk = 'high';
+                }
+
+                findings.push(`<strong>Blood Sugar (${data.sugar_type}):</strong> ${data.blood_sugar} mg/dL (Normal: ${normalRange}) - ${sugarRisk.toUpperCase()}`);
+                if (sugarRisk === 'high') {
+                    recommendations.push('Consult healthcare provider for blood sugar management');
+                    if (overallRisk !== 'high') overallRisk = 'medium';
+                }
+            }
+
+            // BMI Analysis
+            if (data.bmi) {
+                let bmiCategory = 'normal';
+                if (data.bmi < 18.5) bmiCategory = 'underweight';
+                else if (data.bmi >= 25 && data.bmi < 30) bmiCategory = 'overweight';
+                else if (data.bmi >= 30) bmiCategory = 'obese';
+
+                findings.push(`<strong>BMI:</strong> ${data.bmi} - ${bmiCategory.toUpperCase()}`);
+                if (bmiCategory === 'obese') {
+                    recommendations.push('Consider weight management consultation');
+                }
+            }
+
+            // Lab Values Analysis
+            if (data.hemoglobin) {
+                let hbStatus = 'normal';
+                let normalRange = data.gender === 'female' ? '12-16 g/dL' : '13-17 g/dL';
+                if (data.hemoglobin < 12) hbStatus = 'low (anemia)';
+                findings.push(`<strong>Hemoglobin:</strong> ${data.hemoglobin} g/dL (Normal: ${normalRange}) - ${hbStatus}`);
+            }
+
+            // Overall Assessment
+            let riskClass = `risk-${overallRisk}`;
+            let riskText = overallRisk.charAt(0).toUpperCase() + overallRisk.slice(1);
+
+            report += `<div class="risk-indicator ${riskClass}">Overall Health Risk Assessment: ${riskText} Risk</div>`;
+
+            report += `<h3>📊 Key Findings</h3><ul>`;
+            findings.forEach(finding => report += `<li>${finding}</li>`);
+            report += `</ul>`;
+
+            if (recommendations.length > 0) {
+                report += `<h3>💡 Recommendations</h3><ul>`;
+                recommendations.forEach(rec => report += `<li>${rec}</li>`);
+                report += `</ul>`;
+            }
+
+            if (data.symptoms) {
+                report += `<h3>📝 Reported Symptoms</h3><p>${data.symptoms}</p>`;
+                report += `<p><em>Note: Symptom analysis requires professional medical evaluation.</em></p>`;
+            }
+
+            report += `<hr><p><strong>⚠️ This is an AI-generated analysis for informational purposes only. Please consult healthcare professionals for proper diagnosis and treatment.</strong></p>`;
+
+            return report;
+        }
+
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Add title
+            doc.setFontSize(20);
+            doc.text('AI Medical Report', 20, 30);
+
+            // Add content (simplified for PDF)
+            doc.setFontSize(12);
+            const content = document.getElementById('reportContent').innerText;
+            const lines = doc.splitTextToSize(content, 170);
+
+            let y = 50;
+            lines.forEach(line => {
+                if (y > 270) { // New page if needed
+                    doc.addPage();
+                    y = 30;
+                }
+                doc.text(line, 20, y);
+                y += 7;
+            });
+
+            // Save the PDF
+            doc.save('medical_report.pdf');
+        }
+    </script>
+</body>
+</html>

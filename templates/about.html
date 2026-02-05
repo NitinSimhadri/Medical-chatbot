@@ -1,28 +1,193 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>About - Medical Chatbot</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - MediBot AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg-light: #ffffff;
+            --bg-lighter: #f8fafc;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        body[data-theme="dark"] {
+            --bg-light: #0f172a;
+            --bg-lighter: #1e293b;
+            --text-dark: #f8fafc;
+            --text-light: #cbd5e1;
+            --border: #334155;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, var(--bg-lighter), var(--bg-light)); color: var(--text-dark); min-height: 100vh; padding: 2rem; padding-top: 6rem; transition: all 0.3s ease; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .navbar { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 1rem 0; }
+        body[data-theme="dark"] .navbar { background: rgba(15, 23, 42, 0.95); }
+        .navbar-content { max-width: 1400px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+        .nav-links { display: flex; gap: 2rem; align-items: center; }
+        .nav-link { color: var(--text-light); text-decoration: none; font-weight: 500; transition: color 0.2s; }
+        .nav-link:hover { color: var(--primary); }
+        .theme-toggle { background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-dark); }
+        .card { background: var(--bg-light); border-radius: 1rem; padding: 2rem; box-shadow: var(--shadow-md); border: 1px solid var(--border); margin-bottom: 2rem; }
+        h1, h2, h3 { color: var(--text-dark); margin-bottom: 1rem; }
+        h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        p { line-height: 1.8; color: var(--text-light); margin-bottom: 1rem; }
+        ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+        li { line-height: 1.8; margin-bottom: 0.5rem; color: var(--text-light); }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+        .feature-box { background: var(--bg-lighter); padding: 1.5rem; border-radius: 0.75rem; text-align: center; border: 1px solid var(--border); transition: all 0.2s; }
+        .feature-box:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .feature-icon { font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem; }
+        .feature-title { font-weight: 700; color: var(--text-dark); margin-bottom: 0.5rem; }
+        .feature-desc { color: var(--text-light); font-size: 0.9rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: linear-gradient(135deg, var(--primary), #3b82f6); color: white; text-decoration: none; border-radius: 0.5rem; font-weight: 600; transition: all 0.2s; }
+        .btn:hover { transform: translateY(-2px); }
+        .warning-box { background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1.5rem; border-radius: 0.5rem; margin: 1.5rem 0; }
+        .warning-box strong { color: #ef4444; }
+        .service-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+        .service-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg-lighter); border-radius: 0.5rem; border: 1px solid var(--border); }
+        .service-icon { font-size: 1.5rem; color: var(--primary); }
+        .service-name { font-weight: 600; color: var(--text-dark); }
+    </style>
 </head>
-<body>
-    <div style="max-width:900px;margin:80px auto;padding:30px;background:rgba(0,0,0,0.5);border-radius:8px;color:#fff;">
-        <h1>About This Medical Chatbot</h1>
-        <p><strong>What it is:</strong> This Medical Chatbot is a demonstration conversational assistant that combines a retrieval-augmented approach (vector search over medical documents) with a language model to provide informative responses to health-related queries.</p>
-        <p><strong>Why use it:</strong> It helps surface relevant information from a curated document collection quickly, summarizes findings, and offers general educational guidance. It is useful for learning, research, and rapid information lookup.</p>
-        <p><strong>How to use:</strong> Start a conversation on the chat page. Ask symptom-related questions, request explanations of conditions, or use the service pages (BP & Heart Rate, BMI Calculator, Diet Planner, Skin & Hair Care) for quick tools and guidance. When using any measurement tools, provide accurate inputs (height, weight, device readings) for best results.</p>
-        <p><strong>Services offered (free):</strong></p>
-        <ul>
-            <li>Chat-based information and document-backed answers</li>
-            <li>Blood pressure & heart rate guidance (informational; use certified devices for clinical readings)</li>
-            <li>BMI calculator</li>
-            <li>Simple diet planner with caloric estimate</li>
-            <li>Skin & hair care image preview (informational only)</li>
-            <li>Additional educational resources and lifestyle tips</li>
-        </ul>
-        <p><strong>Important:</strong> This tool is for informational and educational purposes only. It does not provide a medical diagnosis or replace advice from a licensed healthcare professional. For medical emergencies or clinical decisions, consult a qualified provider.</p>
-        <p><strong>Credits:</strong> Website built by Nitin Kumar Simhadri — <a href="https://www.linkedin.com/in/nitin-kumar-simhadri-94b0bb228?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" style="color:#9fe8d9;">LinkedIn</a></p>
-        <p><a href="/" style="color:#9fe8d9;">Return to chat</a></p>
+<body data-theme="light">
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/" class="logo"><i class="fas fa-heartbeat"></i> MediBot AI</a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">← Back to Chat</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h1><i class="fas fa-info-circle" style="margin-right: 0.5rem; color: var(--primary);"></i>About MediBot AI</h1>
+            <p style="font-size: 1.1rem; color: var(--text-light);">Your AI-powered medical information companion</p>
+        </div>
+
+        <div class="card">
+            <h2><i class="fas fa-lightbulb" style="color: var(--primary); margin-right: 0.5rem;"></i> What is MediBot AI?</h2>
+            <p>MediBot AI is an advanced conversational healthcare assistant that leverages retrieval-augmented generation (RAG) combined with large language models to provide comprehensive medical information and guidance. By searching through a curated database of medical documents, our AI delivers evidence-based responses tailored to your health-related queries.</p>
+            
+            <h3 style="margin-top: 1.5rem;">Key Capabilities:</h3>
+            <div class="feature-grid">
+                <div class="feature-box">
+                    <div class="feature-icon"><i class="fas fa-brain"></i></div>
+                    <div class="feature-title">AI-Powered Chat</div>
+                    <div class="feature-desc">Natural language understanding for health queries</div>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-icon"><i class="fas fa-database"></i></div>
+                    <div class="feature-title">Knowledge Base</div>
+                    <div class="feature-desc">Curated medical information database</div>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-icon"><i class="fas fa-calculator"></i></div>
+                    <div class="feature-title">Tools & Calculators</div>
+                    <div class="feature-desc">BMI, BP, and health metrics</div>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="feature-title">Analytics</div>
+                    <div class="feature-desc">Track and analyze health data</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><i class="fas fa-cogs" style="color: var(--primary); margin-right: 0.5rem;"></i> Services Offered</h2>
+            <p>MediBot AI provides a comprehensive suite of healthcare tools and services:</p>
+            
+            <div class="service-list">
+                <div class="service-item">
+                    <div class="service-icon"><i class="fas fa-comments"></i></div>
+                    <div class="service-name">AI Chat</div>
+                </div>
+                <div class="service-item">
+                    <div class="service-icon"><i class="fas fa-weight"></i></div>
+                    <div class="service-name">BMI Calculator</div>
+                </div>
+                <div class="service-item">
+                    <div class="service-icon"><i class="fas fa-heartbeat"></i></div>
+                    <div class="service-name">BP & HR Monitoring</div>
+                </div>
+                <div class="service-item">
+                    <div class="service-icon"><i class="fas fa-apple-alt"></i></div>
+                    <div class="service-name">Diet Planner</div>
+                </div>
+                <div class="service-item">
+                    <div class="service-icon"><i class="fas fa-dna"></i></div>
+                    <div class="service-name">Skin Analysis</div>
+                </div>
+                <div class="service-item">
+                    <div class="service-icon"><i class="fas fa-pills"></i></div>
+                    <div class="service-name">Medication Tracker</div>
+                </div>
+                <div class="service-item">
+                    <div class="service-icon"><i class="fas fa-file-prescription"></i></div>
+                    <div class="service-name">Prescription Analysis</div>
+                </div>
+                <div class="service-item">
+                    <div class="service-icon"><i class="fas fa-history"></i></div>
+                    <div class="service-name">Chat History</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><i class="fas fa-star" style="color: var(--primary); margin-right: 0.5rem;"></i> Why Use MediBot AI?</h2>
+            <ul>
+                <li><strong>Evidence-Based Information:</strong> Responses backed by medical literature and research</li>
+                <li><strong>24/7 Availability:</strong> Get health information whenever you need it</li>
+                <li><strong>Comprehensive Tools:</strong> From calculators to AI chat, all in one place</li>
+                <li><strong>User-Friendly Interface:</strong> Modern, intuitive design for easy navigation</li>
+                <li><strong>Data Privacy:</strong> Your health information is secure and private</li>
+                <li><strong>Free Access:</strong> All core services are available without cost</li>
+            </ul>
+        </div>
+
+        <div class="warning-box">
+            <strong><i class="fas fa-exclamation-triangle"></i> Important Disclaimer:</strong>
+            <p style="margin-top: 0.5rem;">MediBot AI is designed for <strong>informational and educational purposes only</strong>. It is NOT a substitute for professional medical advice, diagnosis, or treatment from a licensed healthcare provider. Always consult with a qualified healthcare professional for:</p>
+            <ul>
+                <li>Medical diagnosis and treatment decisions</li>
+                <li>Emergency medical situations</li>
+                <li>Prescription medications</li>
+                <li>Surgical procedures</li>
+                <li>Mental health concerns</li>
+            </ul>
+            <p style="margin-top: 1rem;">For medical emergencies, call your local emergency services immediately.</p>
+        </div>
+
+        <div class="card">
+            <h2><i class="fas fa-user" style="color: var(--primary); margin-right: 0.5rem;"></i> About the Creator</h2>
+            <p>MediBot AI was created by <strong>Nitin Kumar Simhadri</strong>, a passionate healthcare technology enthusiast dedicated to making medical information more accessible.</p>
+            <p style="margin-top: 1rem;">
+                <a href="https://www.linkedin.com/in/nitin-kumar-simhadri-94b0bb228?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" class="btn" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-linkedin"></i> Connect on LinkedIn
+                </a>
+            </p>
+        </div>
+
+        <div class="card" style="text-align: center; background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(59, 130, 246, 0.1));">
+            <h3 style="margin-bottom: 1rem;">Ready to Explore?</h3>
+            <p style="margin-bottom: 1.5rem;">Start using MediBot AI today for comprehensive health information and tools.</p>
+            <a href="/" class="btn">
+                <i class="fas fa-comment-medical"></i> Start Chatting
+            </a>
+        </div>
     </div>
+
+    <script>
+        document.body.setAttribute('data-theme', localStorage.getItem('medibot-theme') || 'light');
+    </script>
 </body>
 </html>

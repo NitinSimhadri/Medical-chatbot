@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment - MediCare Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+
+            /* Light mode colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --card-bg: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --border-color: #334155;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --card-bg: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .navbar {
+            background: var(--card-bg);
+            box-shadow: 0 2px 10px var(--shadow);
+            padding: 1rem 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .chat-toggle {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .chat-toggle:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 100px auto 2rem;
+            padding: 0 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .form-input {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .clinics-section {
+            display: none;
+        }
+
+        .clinics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .clinic-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px var(--shadow);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .clinic-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px var(--shadow);
+        }
+
+        .clinic-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .clinic-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-right: 1rem;
+        }
+
+        .clinic-info h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .clinic-specialty {
+            background: var(--secondary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .clinic-details {
+            margin: 1rem 0;
+        }
+
+        .clinic-detail {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .clinic-detail i {
+            margin-right: 0.5rem;
+            width: 16px;
+            color: var(--primary-color);
+        }
+
+        .clinic-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .booking-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .booking-form {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .success-message {
+            display: none;
+            background: var(--success-color);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .chat-widget {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 350px;
+            height: 500px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background: var(--bg-secondary);
+        }
+
+        .chat-input-area {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .chat-send {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .clinics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chat-widget {
+                width: calc(100vw - 2rem);
+                height: calc(100vh - 4rem);
+                bottom: 1rem;
+                right: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo">🏥 MediCare Pro</div>
+            <div class="navbar-actions">
+                <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="chat-toggle" id="chatToggle">
+                    <i class="fas fa-comments"></i> Chat
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="hero">
+            <h1>Find & Book Healthcare Appointments</h1>
+            <p>Connect with verified healthcare providers in your area. Get instant appointment booking with real-time availability.</p>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <form class="search-form" id="locationForm">
+                <div class="form-group">
+                    <label for="pincode">📍 Enter Pincode</label>
+                    <input type="text" id="pincode" class="form-input" placeholder="e.g., 110001" required pattern="[0-9]{6}" maxlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="concern">🔍 Medical Concern (Optional)</label>
+                    <input type="text" id="concern" class="form-input" placeholder="e.g., cardiology, fever, dental">
+                </div>
+                <button type="submit" class="search-btn" id="searchBtn">
+                    <span id="searchText">🔍 Search</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Clinics Results -->
+        <div class="clinics-section" id="clinicResults">
+            <h2 style="margin-bottom: 1rem; color: var(--text-primary);">🏥 Nearby Healthcare Providers</h2>
+            <div class="clinics-grid" id="clinicsList">
+                <!-- Clinics will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div class="booking-modal" id="bookingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Book Appointment</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <form class="booking-form" id="appointmentForm">
+                <input type="hidden" id="selectedClinic">
+                <div class="form-group">
+                    <label for="patientName">👤 Full Name</label>
+                    <input type="text" id="patientName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">📞 Phone Number</label>
+                    <input type="tel" id="phone" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">✉️ Email (Optional)</label>
+                    <input type="email" id="email" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="appointmentDate">📅 Preferred Date</label>
+                    <input type="date" id="appointmentDate" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="appointmentTime">⏰ Preferred Time</label>
+                    <select id="appointmentTime" class="form-input" required>
+                        <option value="">Select time slot</option>
+                        <option value="09:00">🌅 9:00 AM</option>
+                        <option value="10:00">🌅 10:00 AM</option>
+                        <option value="11:00">🌅 11:00 AM</option>
+                        <option value="14:00">🌇 2:00 PM</option>
+                        <option value="15:00">🌇 3:00 PM</option>
+                        <option value="16:00">🌇 4:00 PM</option>
+                        <option value="17:00">🌆 5:00 PM</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="symptoms">📝 Symptoms/Reason for Visit</label>
+                    <textarea id="symptoms" class="form-input" rows="3" placeholder="Describe your symptoms or reason for visit..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                    <i class="fas fa-calendar-check"></i> Confirm Booking
+                </button>
+            </form>
+            <div class="success-message" id="bookingConfirmation">
+                <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                <h4>Appointment Booked Successfully!</h4>
+                <p>Your appointment request has been submitted. The healthcare provider will contact you shortly to confirm.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Widget -->
+    <div class="chat-widget" id="chatWidget">
+        <div class="chat-header">
+            <i class="fas fa-robot"></i> MediCare Assistant
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-message bot">
+                <strong>MediCare:</strong> Hi! I'm here to help you with your healthcare needs. How can I assist you today?
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Type your message...">
+            <button class="chat-send" id="chatSend">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Theme management
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        body.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            const icon = themeToggle.querySelector('i');
+            icon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+
+        // Chat widget toggle
+        const chatToggle = document.getElementById('chatToggle');
+        const chatWidget = document.getElementById('chatWidget');
+
+        chatToggle.addEventListener('click', () => {
+            const isVisible = chatWidget.style.display === 'flex';
+            chatWidget.style.display = isVisible ? 'none' : 'flex';
+            if (!isVisible) {
+                document.getElementById('chatInput').focus();
+            }
+        });
+
+        // Chat functionality
+        const chatInput = document.getElementById('chatInput');
+        const chatSend = document.getElementById('chatSend');
+        const chatMessages = document.getElementById('chatMessages');
+
+        function sendChatMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addChatMessage('user', message);
+            chatInput.value = '';
+
+            // Simulate bot response (in real app, this would call your backend)
+            setTimeout(() => {
+                const botResponse = getBotResponse(message);
+                addChatMessage('bot', botResponse);
+            }, 1000);
+        }
+
+        function addChatMessage(sender, message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${sender}`;
+            messageDiv.innerHTML = `<strong>${sender === 'bot' ? 'MediCare:' : 'You:'}</strong> ${message}`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function getBotResponse(message) {
+            const lowerMessage = message.toLowerCase();
+
+            if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
+                return "Hello! How can I help you with your healthcare needs today?";
+            } else if (lowerMessage.includes('appointment')) {
+                return "I can help you book appointments! Use the search form above to find healthcare providers in your area.";
+            } else if (lowerMessage.includes('emergency')) {
+                return "🚨 If this is a medical emergency, please call emergency services (911) immediately or go to the nearest hospital. Don't wait for an appointment!";
+            } else if (lowerMessage.includes('fever') || lowerMessage.includes('pain')) {
+                return "I'm sorry you're not feeling well. Can you describe your symptoms in more detail? I can help you find the right healthcare provider.";
+            } else {
+                return "I understand you're looking for healthcare assistance. Could you please provide more details about your concern so I can better help you?";
+            }
+        }
+
+        chatSend.addEventListener('click', sendChatMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendChatMessage();
+        });
+
+        // Real clinic data simulation (in production, use Google Places API or similar)
+        const mockClinicAPI = {
+            // Simulate API call delay
+            searchClinics: async function(pincode, concern = '') {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        const clinics = this.getClinicsByPincode(pincode, concern);
+                        resolve(clinics);
+                    }, 1500); // Simulate network delay
+                });
+            },
+
+            getClinicsByPincode: function(pincode, concern) {
+                // Mock data - in real app, this would come from Google Places API
+                const clinicData = {
+                    "110001": [
+                        {
+                            id: 1,
+                            name: "AIIMS Medical Center",
+                            address: "Ansari Nagar, New Delhi, Delhi 110029",
+                            phone: "+91-11-2658-8500",
+                            rating: 4.8,
+                            reviews: 1250,
+                            specialties: ["Multi-specialty", "Emergency Care"],
+                            distance: "2.1 km",
+                            image: "🏥",
+                            availability: "Today: 9:00 AM - 8:00 PM",
+                            price: "₹500-2000",
+                            verified: true
+                        },
+                        {
+                            id: 2,
+                            name: "Apollo Hospitals Delhi",
+                            address: "Sarita Vihar, Mathura Road, Delhi 110076",
+                            phone: "+91-11-2692-5858",
+                            rating: 4.6,
+                            reviews: 890,
+                            specialties: ["Cardiology", "Neurology", "Oncology"],
+                            distance: "3.8 km",
+                            image: "🏥",
+                            availability: "Today: 8:00 AM - 9:00 PM",
+                            price: "₹1000-5000",
+                            verified: true
+                        },
+                        {
+                            id: 3,
+                            name: "Max Super Speciality Hospital",
+                            address: "1,2, Press Enclave Road, Saket, Delhi 110017",
+                            phone: "+91-11-2651-5050",
+                            rating: 4.7,
+                            reviews: 756,
+                            specialties: ["Orthopedics", "Cardiology", "Cancer Care"],
+                            distance: "5.2 km",
+                            image: "🏥",
+                            availability: "Today: 10:00 AM - 7:00 PM",
+                            price: "₹800-3000",
+                            verified: true
+                        }
+                    ],
+                    "400001": [
+                        {
+                            id: 4,
+                            name: "Lilavati Hospital",
+                            address: "A-791, Bandra Reclamation, Bandra West, Mumbai 400050",
+                            phone: "+91-22-2675-1000",
+                            rating: 4.5,
+                            reviews: 654,
+                            specialties: ["Multi-specialty", "Cardiology"],
+                            distance: "3.5 km",
+                            image: "🏥",
+                            availability: "Today: 9:00 AM - 8:00 PM",
+                            price: "₹600-2500",
+                            verified: true
+                        },
+                        {
+                            id: 5,
+                            name: "Breach Candy Hospital",
+                            address: "60-A, Bhulabhai Desai Road, Breach Candy, Mumbai 400026",
+                            phone: "+91-22-6718-5000",
+                            rating: 4.7,
+                            reviews: 925,
+                            specialties: ["Emergency Care", "Cardiology", "Pediatrics"],
+                            distance: "2.1 km",
+                            image: "🏥",
+                            availability: "Today: 24/7",
+                            price: "₹800-4000",
+                            verified: true
+                        }
+                    ],
+                    "100001": [
+                        {
+                            id: 7,
+                            name: "Mount Sinai Hospital",
+                            address: "1 Gustave L. Levy Pl, New York, NY 10029",
+                            phone: "+1-212-241-6500",
+                            rating: 4.4,
+                            reviews: 2100,
+                            specialties: ["Multi-specialty", "Emergency Care"],
+                            distance: "2.1 km",
+                            image: "🏥",
+                            availability: "Today: 24/7",
+                            price: "$200-1000",
+                            verified: true
+                        }
+                    ],
+                    "765022": [
+                        {
+                            id: 8,
+                            name: "City Medical Center",
+                            address: "Shalimar Nagar, Bhubaneswar, Odisha 765022",
+                            phone: "+91-674-2500-500",
+                            rating: 4.6,
+                            reviews: 543,
+                            specialties: ["Multi-specialty", "General Practitioner"],
+                            distance: "1.5 km",
+                            image: "🏥",
+                            availability: "Today: 8:00 AM - 8:00 PM",
+                            price: "₹300-1500",
+                            verified: true
+                        },
+                        {
+                            id: 9,
+                            name: "Care Hospital Bhubaneswar",
+                            address: "NH-5, Mancheswar, Bhubaneswar, Odisha 765022",
+                            phone: "+91-674-6600-600",
+                            rating: 4.5,
+                            reviews: 438,
+                            specialties: ["Cardiology", "Orthopedics", "Neurology"],
+                            distance: "3.2 km",
+                            image: "🏥",
+                            availability: "Today: 9:00 AM - 9:00 PM",
+                            price: "₹500-2500",
+                            verified: true
+                        },
+                        {
+                            id: 10,
+                            name: "Apollo Hospitals Bhubaneswar",
+                            address: "Nayapalli, Bhubaneswar, Odisha 765022",
+                            phone: "+91-674-4400-400",
+                            rating: 4.8,
+                            reviews: 876,
+                            specialties: ["Multi-specialty", "Cancer Care", "Emergency Care"],
+                            distance: "4.1 km",
+                            image: "🏥",
+                            availability: "Today: 24/7",
+                            price: "₹800-3500",
+                            verified: true
+                        }
+                    ],
+                    "560001": [
+                        {
+                            id: 11,
+                            name: "Manipal Hospital Bangalore",
+                            address: "Brigade Gateway, Whitefield, Bangalore 560001",
+                            phone: "+91-80-6030-3030",
+                            rating: 4.7,
+                            reviews: 1120,
+                            specialties: ["Multi-specialty", "Oncology", "Cardiology"],
+                            distance: "2.8 km",
+                            image: "🏥",
+                            availability: "Today: 8:00 AM - 10:00 PM",
+                            price: "₹600-3000",
+                            verified: true
+                        },
+                        {
+                            id: 12,
+                            name: "Fortis Hospital Bangalore",
+                            address: "Bannerghatta Road, Bangalore 560001",
+                            phone: "+91-80-4160-4160",
+                            rating: 4.6,
+                            reviews: 934,
+                            specialties: ["Neurology", "Orthopedics", "Pediatrics"],
+                            distance: "3.5 km",
+                            image: "🏥",
+                            availability: "Today: 9:00 AM - 8:00 PM",
+                            price: "₹500-2500",
+                            verified: true
+                        }
+                    ],
+                    "201301": [
+                        {
+                            id: 13,
+                            name: "BLK Super Speciality Hospital",
+                            address: "Sector 12, Noida, Uttar Pradesh 201301",
+                            phone: "+91-120-4060-6000",
+                            rating: 4.5,
+                            reviews: 687,
+                            specialties: ["Multi-specialty", "Cardiology", "Emergency Care"],
+                            distance: "2.3 km",
+                            image: "🏥",
+                            availability: "Today: 24/7",
+                            price: "₹400-2000",
+                            verified: true
+                        },
+                        {
+                            id: 14,
+                            name: "Max Healthcare Noida",
+                            address: "Plot C-2, Sector 12, Noida 201301",
+                            phone: "+91-120-4050-5000",
+                            rating: 4.4,
+                            reviews: 556,
+                            specialties: ["Orthopedics", "General Medicine"],
+                            distance: "3.8 km",
+                            image: "🏥",
+                            availability: "Today: 8:00 AM - 9:00 PM",
+                            price: "₹350-1800",
+                            verified: true
+                        }
+                    ],
+                    "411001": [
+                        {
+                            id: 15,
+                            name: "Jehangir Hospital Pune",
+                            address: "32, Sasoon Road, Pune 411001",
+                            phone: "+91-20-6010-6010",
+                            rating: 4.6,
+                            reviews: 745,
+                            specialties: ["Multi-specialty", "Cardiology", "Orthopedics"],
+                            distance: "1.9 km",
+                            image: "🏥",
+                            availability: "Today: 9:00 AM - 9:00 PM",
+                            price: "₹450-2200",
+                            verified: true
+                        },
+                        {
+                            id: 16,
+                            name: "Ruby Hall Clinic Pune",
+                            address: "40, Wagle Estate, Thane 411001",
+                            phone: "+91-20-6611-6611",
+                            rating: 4.5,
+                            reviews: 623,
+                            specialties: ["Neurology", "Cardiology", "Pediatrics"],
+                            distance: "2.7 km",
+                            image: "🏥",
+                            availability: "Today: 8:00 AM - 8:00 PM",
+                            price: "₹500-2500",
+                            verified: true
+                        }
+                    ]
+                };
+
+                let clinics = clinicData[pincode] || [];
+
+                // Filter by concern if specified
+                if (concern) {
+                    const filteredClinics = clinics.filter(clinic =>
+                        clinic.specialties.some(spec =>
+                            spec.toLowerCase().includes(concern.toLowerCase())
+                        )
+                    );
+                    // If matches found, use filtered results, otherwise show all
+                    clinics = filteredClinics.length > 0 ? filteredClinics : clinics;
+                }
+
+                return clinics;
+            }
+        };
+
+        // Search functionality
+        const locationForm = document.getElementById('locationForm');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchText = document.getElementById('searchText');
+        const clinicResults = document.getElementById('clinicResults');
+        const clinicsList = document.getElementById('clinicsList');
+
+        locationForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const pincode = document.getElementById('pincode').value.trim();
+            const concern = document.getElementById('concern').value.trim();
+
+            if (!/^\d{6}$/.test(pincode)) {
+                alert('Please enter a valid 6-digit pincode.');
+                return;
+            }
+
+            // Show loading state
+            searchBtn.disabled = true;
+            searchText.innerHTML = '<div class="loading"></div> Searching...';
+
+            try {
+                const clinics = await mockClinicAPI.searchClinics(pincode, concern);
+                displayClinics(clinics, pincode);
+            } catch (error) {
+                console.error('Error fetching clinics:', error);
+                clinicsList.innerHTML = '<div class="clinic-card"><p>❌ Error loading clinics. Please try again.</p></div>';
+                clinicResults.style.display = 'block';
+            } finally {
+                // Reset button state
+                searchBtn.disabled = false;
+                searchText.innerHTML = '🔍 Search';
+            }
+        });
+
+        function displayClinics(clinics, pincode) {
+            if (clinics.length === 0) {
+                clinicsList.innerHTML = `
+                    <div class="clinic-card">
+                        <p>😔 No clinics found for pincode ${pincode}. Try a nearby pincode or different medical concern.</p>
+                        <p style="margin-top: 1rem; color: var(--text-muted);">
+                            💡 Tip: Try pincodes like 110001 (Delhi), 400001 (Mumbai), or 100001 (New York)
+                        </p>
+                    </div>
+                `;
+            } else {
+                clinicsList.innerHTML = clinics.map(clinic => `
+                    <div class="clinic-card">
+                        <div class="clinic-header">
+                            <div class="clinic-icon">${clinic.image}</div>
+                            <div class="clinic-info">
+                                <h3>${clinic.name}</h3>
+                                <span class="clinic-specialty">${clinic.specialties[0]}</span>
+                            </div>
+                        </div>
+                        <div class="clinic-details">
+                            <div class="clinic-detail">
+                                <i class="fas fa-map-marker-alt"></i>
+                                ${clinic.address}
+                            </div>
+                            <div class="clinic-detail">
+                                <i class="fas fa-phone"></i>
+                                ${clinic.phone}
+                            </div>
+                            <div class="clinic-detail">
+                                <i class="fas fa-route"></i>
+                                ${clinic.distance} away
+                            </div>
+                            <div class="clinic-detail">
+                                <i class="fas fa-clock"></i>
+                                ${clinic.availability}
+                            </div>
+                            <div class="clinic-detail">
+                                <i class="fas fa-star"></i>
+                                ${clinic.rating} (${clinic.reviews} reviews)
+                            </div>
+                            <div class="clinic-detail">
+                                <i class="fas fa-rupee-sign"></i>
+                                ${clinic.price}
+                            </div>
+                        </div>
+                        <div class="clinic-actions">
+                            <button class="btn btn-secondary" onclick="viewClinicDetails(${clinic.id})">
+                                <i class="fas fa-info-circle"></i> Details
+                            </button>
+                            <button class="btn btn-primary" onclick="selectClinic(${clinic.id}, '${clinic.name}')">
+                                <i class="fas fa-calendar-plus"></i> Book Now
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            clinicResults.style.display = 'block';
+            clinicResults.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function viewClinicDetails(clinicId) {
+            // In a real app, this would show detailed clinic information
+            alert('Detailed clinic information would be shown here in a real application.');
+        }
+
+        // Booking modal functionality
+        const bookingModal = document.getElementById('bookingModal');
+        const modalClose = document.getElementById('modalClose');
+        const appointmentForm = document.getElementById('appointmentForm');
+        const bookingConfirmation = document.getElementById('bookingConfirmation');
+
+        function selectClinic(id, name) {
+            document.getElementById('selectedClinic').value = id;
+            bookingModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        modalClose.addEventListener('click', () => {
+            bookingModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            appointmentForm.style.display = 'grid';
+            bookingConfirmation.style.display = 'none';
+        });
+
+        bookingModal.addEventListener('click', (e) => {
+            if (e.target === bookingModal) {
+                bookingModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                appointmentForm.style.display = 'grid';
+                bookingConfirmation.style.display = 'none';
+            }
+        });
+
+        appointmentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Simulate booking process
+            appointmentForm.style.display = 'none';
+            bookingConfirmation.style.display = 'block';
+
+            // In a real app, this would send data to your backend
+            setTimeout(() => {
+                bookingModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                appointmentForm.style.display = 'grid';
+                bookingConfirmation.style.display = 'none';
+                appointmentForm.reset();
+            }, 3000);
+        });
+
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('appointmentDate').setAttribute('min', today);
+
+        // Real-time features simulation
+        function updateRealtimeData() {
+            // Simulate real-time availability updates
+            const clinics = document.querySelectorAll('.clinic-card');
+            clinics.forEach((clinic, index) => {
+                // Randomly update availability (just for demo)
+                if (Math.random() > 0.8) {
+                    const availabilityEl = clinic.querySelector('.clinic-detail:nth-child(4)');
+                    if (availabilityEl) {
+                        const statuses = ['Available now', 'Next slot: 2:00 PM', 'Fully booked today'];
+                        const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+                        availabilityEl.innerHTML = `<i class="fas fa-clock"></i> ${randomStatus}`;
+                    }
+                }
+            });
+        }
+
+        // Update real-time data every 30 seconds
+        setInterval(updateRealtimeData, 30000);
+    </script>
+</body>
+</html>

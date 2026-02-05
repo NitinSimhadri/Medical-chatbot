@@ -1,0 +1,14 @@
+{
+  "demo@medicare.com": {
+    "password": "pbkdf2:sha256:260000$demo$dummy",
+    "name": "Demo User",
+    "phone": "+1-555-0123",
+    "created_at": "2024-01-01T00:00:00"
+  },
+  "simhadrinitin@gmail.com": {
+    "password": "scrypt:32768:8:1$SJ8uDPHKEeUA1Axo$b5d01bc59261149bbbb72ae0631ba80eac6238401ffac06d142426a28865b3baed5d541715305edf7f4fde7fdce43e50bf3ed5ca1b486248b620bc913ab372e7",
+    "name": "simhadri",
+    "phone": "07008990421",
+    "created_at": "2026-02-05T00:57:38.873762"
+  }
+}

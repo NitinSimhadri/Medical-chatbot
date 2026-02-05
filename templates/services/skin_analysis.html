@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin & Hair Analysis - MediBot AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg-light: #ffffff;
+            --bg-lighter: #f8fafc;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        body[data-theme="dark"] {
+            --bg-light: #0f172a;
+            --bg-lighter: #1e293b;
+            --text-dark: #f8fafc;
+            --text-light: #cbd5e1;
+            --border: #334155;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, var(--bg-lighter), var(--bg-light)); color: var(--text-dark); min-height: 100vh; padding: 2rem; padding-top: 6rem; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .navbar { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 1rem 0; }
+        body[data-theme="dark"] .navbar { background: rgba(15, 23, 42, 0.95); }
+        .navbar-content { max-width: 1400px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; }
+        .logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+        .nav-link { color: var(--text-light); text-decoration: none; font-weight: 500; }
+        .card { background: var(--bg-light); border-radius: 1rem; padding: 2rem; box-shadow: var(--shadow-md); border: 1px solid var(--border); margin-bottom: 2rem; }
+        h1, h2, h3 { color: var(--text-dark); margin-bottom: 1rem; }
+        p { line-height: 1.6; color: var(--text-light); margin-bottom: 1rem; }
+        .upload-area { border: 2px dashed var(--border); padding: 3rem; text-align: center; border-radius: 0.75rem; margin: 1.5rem 0; transition: all 0.2s; }
+        .upload-area.dragover { border-color: var(--primary); background: rgba(37, 99, 235, 0.1); }
+        .btn { padding: 0.75rem 1.5rem; background: linear-gradient(135deg, var(--primary), #3b82f6); color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; }
+        .btn:hover { transform: translateY(-2px); }
+        .preview-img { max-width: 300px; border-radius: 0.75rem; margin: 1rem 0; }
+        .result-box { background: var(--bg-lighter); padding: 1.5rem; border-radius: 0.75rem; margin: 1.5rem 0; border: 1px solid var(--border); }
+    </style>
+</head>
+<body data-theme="light">
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/" class="logo"><i class="fas fa-heartbeat"></i> MediBot AI</a>
+            <a href="/" class="nav-link">← Back to Chat</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        .severity-low { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+        .severity-medium { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+        .severity-high { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+        .care-routine { background: rgba(0,123,255,0.1); padding: 15px; border-radius: 6px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div style="max-width:1000px;margin:80px auto;padding:30px;background:rgba(0,0,0,0.5);border-radius:8px;color:#fff;">
+        <h1>🧴 AI Skin & Hair Analysis</h1>
+        <p>Upload photos of your skin or hair concerns for AI-powered analysis. Get personalized care recommendations and when to see a dermatologist.</p>
+
+        <div class="analysis-section">
+            <h3>📸 Upload Your Image</h3>
+            <div class="upload-area" id="uploadArea">
+                <div>
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: rgba(255,255,255,0.5);"></i>
+                    <p>Drag & drop an image here or click to browse</p>
+                    <p style="font-size: 12px; color: rgba(255,255,255,0.7);">Supported formats: JPG, PNG, WebP (Max 5MB)</p>
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                    <button onclick="document.getElementById('imageInput').click()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Choose File</button>
+                </div>
+            </div>
+            <div id="imagePreview" style="display: none; text-align: center;">
+                <img id="previewImg" class="image-preview" alt="Preview">
+                <br>
+                <button onclick="removeImage()" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-top: 10px;">Remove Image</button>
+            </div>
+        </div>
+
+        <div class="analysis-section">
+            <h3>📝 Additional Information</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    <label>Concern Type:</label><br>
+                    <select id="concernType" style="width: 100%; padding: 8px; border-radius: 4px; border: none; margin-top: 5px;">
+                        <option value="skin">Skin Condition</option>
+                        <option value="hair">Hair Condition</option>
+                        <option value="nails">Nail Condition</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Duration:</label><br>
+                    <select id="duration" style="width: 100%; padding: 8px; border-radius: 4px; border: none; margin-top: 5px;">
+                        <option value="recent">Just started (days)</option>
+                        <option value="weeks">Weeks</option>
+                        <option value="months">Months</option>
+                        <option value="years">Years</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <label>Symptoms/Description:</label><br>
+                <textarea id="description" placeholder="Describe what you notice (redness, itching, hair loss, etc.)" rows="3" style="width: 100%; padding: 8px; border-radius: 4px; border: none; margin-top: 5px;"></textarea>
+            </div>
+        </div>
+
+        <button class="analyze-btn" id="analyzeBtn" onclick="analyzeImage()" disabled>Analyze Image</button>
+
+        <div id="analysisResult" style="display: none;">
+            <h3>🔍 Analysis Results</h3>
+            <div class="result-card">
+                <div id="analysisContent"></div>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+            <h4>⚠️ Important Medical Disclaimer</h4>
+            <p>This AI analysis is for informational purposes only and does not constitute medical advice, diagnosis, or treatment. The AI may not accurately identify all conditions, especially serious ones. Always consult a qualified dermatologist or healthcare professional for proper evaluation and treatment.</p>
+            <p><strong>When to see a doctor immediately:</strong> Severe pain, rapid spreading, signs of infection (pus, fever), allergic reactions, or if condition worsens.</p>
+        </div>
+
+        <p><a href="/">Return to chat</a></p>
+    </div>
+
+    <script>
+        let selectedImage = null;
+
+        // Drag and drop functionality
+        const uploadArea = document.getElementById('uploadArea');
+        const imageInput = document.getElementById('imageInput');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            uploadArea.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            uploadArea.classList.remove('dragover');
+        }
+
+        uploadArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        imageInput.addEventListener('change', function(e) {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024) { // 5MB limit
+                    selectedImage = file;
+                    displayPreview(file);
+                    document.getElementById('analyzeBtn').disabled = false;
+                } else {
+                    alert('Please select a valid image file under 5MB.');
+                }
+            }
+        }
+
+        function displayPreview(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('imagePreview').style.display = 'block';
+                uploadArea.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage() {
+            selectedImage = null;
+            document.getElementById('imagePreview').style.display = 'none';
+            uploadArea.style.display = 'block';
+            document.getElementById('analyzeBtn').disabled = true;
+            document.getElementById('analysisResult').style.display = 'none';
+        }
+
+        function analyzeImage() {
+            const concernType = document.getElementById('concernType').value;
+            const duration = document.getElementById('duration').value;
+            const description = document.getElementById('description').value.toLowerCase();
+
+            // Mock AI analysis (in real app, this would call an AI service)
+            const analysis = performAIAnalysis(concernType, duration, description);
+
+            document.getElementById('analysisContent').innerHTML = analysis;
+            document.getElementById('analysisResult').style.display = 'block';
+            document.getElementById('analysisResult').scrollIntoView({behavior: 'smooth'});
+        }
+
+        function performAIAnalysis(concernType, duration, description) {
+            let analysis = `<h4>AI Analysis Results</h4>`;
+
+            // Mock analysis based on keywords and inputs
+            let conditions = [];
+            let severity = 'low';
+            let recommendations = [];
+            let careRoutine = [];
+
+            if (concernType === 'skin') {
+                if (description.includes('red') || description.includes('rash')) {
+                    conditions.push('Possible Contact Dermatitis');
+                    conditions.push('Allergic Reaction');
+                    severity = 'medium';
+                    recommendations.push('Avoid potential allergens (new soaps, lotions, fabrics)');
+                    recommendations.push('Use hypoallergenic products');
+                    careRoutine.push('Cleanse with gentle, fragrance-free cleanser');
+                    careRoutine.push('Apply fragrance-free moisturizer');
+                    careRoutine.push('Use cold compresses for itching');
+                } else if (description.includes('acne') || description.includes('pimple')) {
+                    conditions.push('Acne Vulgaris');
+                    severity = 'medium';
+                    recommendations.push('Avoid picking or squeezing lesions');
+                    recommendations.push('Use non-comedogenic products');
+                    careRoutine.push('Cleanse twice daily with salicylic acid cleanser');
+                    careRoutine.push('Use benzoyl peroxide spot treatment');
+                    careRoutine.push('Apply oil-free moisturizer');
+                } else if (description.includes('dry') || description.includes('flaky')) {
+                    conditions.push('Xerosis (Dry Skin)');
+                    severity = 'low';
+                    careRoutine.push('Use humidifier to add moisture to air');
+                    careRoutine.push('Apply thick moisturizer immediately after bathing');
+                    careRoutine.push('Avoid hot showers');
+                } else {
+                    conditions.push('General Skin Irritation');
+                    careRoutine.push('Keep skin clean and moisturized');
+                    careRoutine.push('Avoid harsh soaps and hot water');
+                }
+            } else if (concernType === 'hair') {
+                if (description.includes('loss') || description.includes('thinning')) {
+                    conditions.push('Possible Androgenetic Alopecia');
+                    conditions.push('Telogen Effluvium');
+                    severity = 'medium';
+                    recommendations.push('Consult dermatologist for proper diagnosis');
+                    careRoutine.push('Use gentle, sulfate-free shampoo');
+                    careRoutine.push('Avoid harsh styling and heat treatments');
+                    careRoutine.push('Consider biotin supplements (consult doctor first)');
+                } else if (description.includes('dandruff') || description.includes('flaky')) {
+                    conditions.push('Seborrheic Dermatitis');
+                    severity = 'low';
+                    careRoutine.push('Use anti-dandruff shampoo with ketoconazole');
+                    careRoutine.push('Shampoo daily and leave on scalp for 5 minutes');
+                    careRoutine.push('Avoid scratching scalp');
+                } else {
+                    conditions.push('General Hair Concern');
+                    careRoutine.push('Use protein-rich diet for hair health');
+                    careRoutine.push('Trim regularly to prevent split ends');
+                }
+            }
+
+            // Duration-based adjustments
+            if (duration === 'years' && severity !== 'high') {
+                severity = 'medium';
+                recommendations.push('Long-standing condition requires professional evaluation');
+            }
+
+            // Display results
+            analysis += `<div style="margin: 15px 0;"><strong>Possible Conditions:</strong><br>`;
+            conditions.forEach(condition => {
+                analysis += `<span class="condition-tag">${condition}</span>`;
+            });
+            analysis += `</div>`;
+
+            const severityClass = `severity-${severity}`;
+            const severityText = severity.charAt(0).toUpperCase() + severity.slice(1);
+            analysis += `<div class="condition-tag ${severityClass}" style="font-size: 14px;"><strong>Severity Assessment: ${severityText}</strong></div>`;
+
+            if (recommendations.length > 0) {
+                analysis += `<h5>💡 Recommendations:</h5><ul>`;
+                recommendations.forEach(rec => analysis += `<li>${rec}</li>`);
+                analysis += `</ul>`;
+            }
+
+            analysis += `<div class="care-routine"><h5>🧴 Suggested Care Routine:</h5><ul>`;
+            careRoutine.forEach(routine => analysis += `<li>${routine}</li>`);
+            analysis += `</ul></div>`;
+
+            analysis += `<div style="background: rgba(255,193,7,0.1); padding: 10px; border-radius: 5px; margin: 15px 0;">
+                <strong>📅 When to See a Doctor:</strong>
+                <ul style="margin: 5px 0;">
+                    <li>If condition worsens or doesn't improve in 2 weeks</li>
+                    <li>If you experience pain, bleeding, or signs of infection</li>
+                    <li>If condition affects your daily life significantly</li>
+                    <li>For hair loss: if losing more than 100 strands daily</li>
+                </ul>
+            </div>`;
+
+            return analysis;
+        }
+    </script>
+</body>
+</html>

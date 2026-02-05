@@ -1,17 +1,349 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Disclaimer - Medical Chatbot</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disclaimer - MediCare Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+
+            /* Light mode colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --card-bg: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --border-color: #334155;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --card-bg: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .disclaimer-container {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px var(--shadow);
+            padding: 3rem;
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .disclaimer-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--danger-color), var(--primary-color), var(--secondary-color));
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .warning-icon {
+            font-size: 3rem;
+            color: var(--danger-color);
+            margin-bottom: 1rem;
+        }
+
+        .disclaimer-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .disclaimer-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .content-section {
+            margin-bottom: 2rem;
+        }
+
+        .disclaimer-content {
+            line-height: 1.7;
+            color: var(--text-primary);
+        }
+
+        .disclaimer-content p {
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+
+        .highlight-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .highlight-box h4 {
+            color: var(--danger-color);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .important-points {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .important-points h4 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .points-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .points-list li {
+            margin-bottom: 0.75rem;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-secondary);
+        }
+
+        .points-list li::before {
+            content: '⚠️';
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .action-section {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .disclaimer-container {
+                padding: 2rem 1.5rem;
+                margin: 1rem;
+            }
+
+            .disclaimer-title {
+                font-size: 1.5rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div style="max-width:900px;margin:80px auto;padding:30px;background:rgba(0,0,0,0.6);border-radius:8px;color:#fff;">
-        <h1>Disclaimer</h1>
-        <p>This chatbot is provided for educational and informational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment.</p>
-        <p>Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.</p>
-        <p>The creators of this chatbot are not liable for any decisions made based on the information provided by the bot.</p>
-        <p><a href="/" style="color:#9fe8d9;">Return to chat</a></p>
+    <div class="disclaimer-container">
+        <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+            <i class="fas fa-moon"></i>
+        </button>
+
+        <div class="header-section">
+            <div class="logo">🏥 MediCare Pro</div>
+            <div class="warning-icon">⚠️</div>
+            <h1 class="disclaimer-title">Important Medical Disclaimer</h1>
+            <p class="disclaimer-subtitle">Please read carefully before using our services</p>
+        </div>
+
+        <div class="content-section">
+            <div class="disclaimer-content">
+                <p><strong>MediCare Pro</strong> is an AI-powered healthcare assistant designed to provide general health information and support. However, it is crucial to understand the limitations and appropriate use of this service.</p>
+
+                <div class="highlight-box">
+                    <h4>🚨 Critical Warning</h4>
+                    <p>This application is <strong>NOT</strong> a substitute for professional medical advice, diagnosis, or treatment. Always consult qualified healthcare providers for medical concerns.</p>
+                </div>
+
+                <div class="important-points">
+                    <h4>What This Service Provides:</h4>
+                    <ul class="points-list">
+                        <li>General health information and educational content</li>
+                        <li>Symptom tracking and basic health monitoring tools</li>
+                        <li>Appointment booking assistance with healthcare providers</li>
+                        <li>Health data organization and record keeping</li>
+                        <li>General wellness and lifestyle guidance</li>
+                    </ul>
+                </div>
+
+                <div class="important-points">
+                    <h4>What This Service Does NOT Provide:</h4>
+                    <ul class="points-list">
+                        <li>Medical diagnosis or treatment recommendations</li>
+                        <li>Emergency medical care or urgent interventions</li>
+                        <li>Prescription of medications or treatments</li>
+                        <li>Interpretation of medical test results</li>
+                        <li>Legal or insurance advice</li>
+                    </ul>
+                </div>
+
+                <p><strong>Emergency Situations:</strong> If you are experiencing a medical emergency, severe symptoms, or believe you may be having a heart attack, stroke, or other life-threatening condition, please call emergency services (911 in the US, 112 in Europe, or your local emergency number) immediately. Do not wait for or rely on this application.</p>
+
+                <p><strong>Medical Decisions:</strong> Any decisions about your health should be made in consultation with qualified medical professionals who can provide personalized advice based on your complete medical history, examination, and appropriate testing.</p>
+
+                <p><strong>Data Privacy:</strong> While we take privacy seriously, this is a demonstration application. In a production environment, ensure you understand how your health data is stored, used, and protected.</p>
+
+                <p><strong>Accuracy:</strong> While we strive for accuracy, medical information can change, and errors can occur. The information provided should not be considered comprehensive or error-free.</p>
+            </div>
+        </div>
+
+        <div class="action-section">
+            <div class="action-buttons">
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-robot"></i> Continue to MediBot
+                </a>
+                <a href="/about" class="btn btn-secondary">
+                    <i class="fas fa-info-circle"></i> Learn More
+                </a>
+            </div>
+        </div>
     </div>
+
+    <script>
+        // Theme management
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        body.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            const icon = themeToggle.querySelector('i');
+            icon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+    </script>
 </body>
 </html>
