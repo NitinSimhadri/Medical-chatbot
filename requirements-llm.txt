@@ -1,0 +1,31 @@
+# Full LLM + Vector stack (Groq + Pinecone)
+# Install these into a new, isolated conda environment to avoid disturbing your working env
+
+# Core RAG / LangChain pieces
+langchain>=0.3.0,<0.4.0
+langchain-groq>=0.2.0
+langchain-community>=0.3.0
+langchain-pinecone>=0.1.0
+
+# Vector store client
+pinecone-client>=5.0.0
+
+# Document processing / embeddings
+sentence-transformers>=2.2.2
+huggingface-hub>=0.14.1
+
+# Imaging and optional AVIF support
+Pillow>=9.0.0
+pillow-avif-plugin>=0.7.0 ; platform_system == "Windows" or platform_system == "Linux"
+
+# (Optional) local FAISS for local retrieval if desired
+faiss-cpu>=1.7.2
+
+# Utilities
+python-dotenv
+requests
+
+# Notes:
+# 1) These versions are a suggestion to reduce common dependency conflicts. If pip reports ResolutionImpossible,
+#    install incrementally (first langchain, then langchain-groq, then pinecone-client) and share errors.
+# 2) Install into a new conda env to avoid breaking your existing 'medicalbot' env.

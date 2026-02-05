@@ -1,0 +1,6 @@
+
+Usage:   
+  pip uninstall [options] <package> ...
+  pip uninstall [options] -r <requirements file> ...
+
+no such option: --upgrade

@@ -64,6 +64,51 @@
       "timestamp": "2026-02-05T15:35:24.743445",
       "user": "Image analysis: Please analyze this medical image",
       "bot": "Based on the uploaded AVIF image \"hives-eczema-differences-body10 (1).avif,\" I'll provide a general analysis of what is visible in the image.\n\n**Detailed Analysis:**\nThe image appears to be a photogra"
+    },
+    {
+      "timestamp": "2026-02-05T17:47:02.080587",
+      "user": "hi",
+      "bot": "Hi! How can I help you today? You can ask about symptoms, check BP/BMI, plan diet, or book a doctor appointment."
+    },
+    {
+      "timestamp": "2026-02-05T18:05:02.487302",
+      "user": "Image analysis: Please analyze this medical image",
+      "bot": "Image received (hives-eczema-differences-body10 (1).avif). Analysis: Please analyze this medical image -- This is general informational content only. Always consult a healthcare professional for prope"
+    },
+    {
+      "timestamp": "2026-02-05T18:11:07.829528",
+      "user": "Image analysis: Please analyze this medical image",
+      "bot": "Image received (hives-eczema-differences-body10 (1).avif). Analysis: Please analyze this medical image -- This is general informational content only. Always consult a healthcare professional for prope"
+    },
+    {
+      "timestamp": "2026-02-05T18:34:37.293052",
+      "user": "Image analysis: Please analyze this medical image",
+      "bot": "Image received (hives-eczema-differences-body10.avif). Analysis: Please analyze this medical image -- This is general informational content only. Always consult a healthcare professional for proper di"
+    },
+    {
+      "timestamp": "2026-02-05T18:34:56.230732",
+      "user": "Image analysis: Please analyze this medical image",
+      "bot": "Image received (hives-eczema-differences-body10.avif). Analysis: Please analyze this medical image -- This is general informational content only. Always consult a healthcare professional for proper di"
+    },
+    {
+      "timestamp": "2026-02-05T18:42:19.518287",
+      "user": "what is acne?",
+      "bot": "Acne is a common skin condition characterized by the occurrence of pimples, blackheads, and other lesions on the skin, particularly on the face, chest, and back. It is caused by a combination of factors, including:\n\n- Overproduction of oil (sebum) by the skin's sebaceous glands\n- Clogged pores due to dead skin cells and other debris\n- Bacteria (Propionibacterium acnes) that thrive in the pores and cause inflammation\n- Hormonal fluctuations, which can lead to increased oil production and pore clogging\n\nAcne can be classified into different types, including:\n\n- Non-inflammatory acne (blackheads and whiteheads)\n- Inflammatory acne (papules, pustules, and nodules)\n- Cystic acne (large, painful cysts)\n\nIf you're experiencing acne symptoms, I recommend using our Symptom Checker service to assess your condition and get personalized advice."
+    },
+    {
+      "timestamp": "2026-02-05T18:42:51.700405",
+      "user": "I am having fever any precautions",
+      "bot": "A fever can be a concerning symptom. I'm not a doctor, but I can provide some general guidance. \n\nA fever is generally considered high if it's above 100.4\u00b0F (38\u00b0C). In your case, you mentioned a fever of 38\u00b0\u201340\u00b0C, which is slightly elevated. \n\nTo manage your fever, I recommend:\n\n1. **Rest**: Get plenty of rest to help your body recover.\n2. **Hydration**: Drink plenty of fluids, such as water, clear broths, or electrolyte-rich beverages like sports drinks.\n3. **Medication**: If your fever is uncomfortable, you can take over-the-counter medications like acetaminophen (Tylenol) or ibuprofen (Advil, Motrin) as directed. However, always follow the recommended dosage and consult with your doctor before giving any medication to children.\n\nHowever, please note that if you experience any of the following, seek medical attention immediately:\n\n- Fever above 103\u00b0F (39.4\u00b0C)\n- Fever lasting more than 3 days\n- Severe headache\n- Difficulty breathing\n- Chest pain\n- Confusion\n- Persistent vomiting\n\nIt's essential to consult with your doctor to determine the underlying cause of your fever and receive proper guidance. They may recommend further testing or treatment.\n\nWould you like to book an appointment with your doctor or use our symptom checker service?"
+    },
+    {
+      "timestamp": "2026-02-05T18:45:23.423707",
+      "user": "Image analysis: Please analyze this medical image",
+      "bot": "Image received (hives-eczema-differences-body10.avif). Analysis: Please analyze this medical image -- This is general informational content only. Always consult a healthcare professional for proper di"
+    },
+    {
+      "timestamp": "2026-02-05T18:49:58.056355",
+      "user": "Image analysis: Please analyze this medical image",
+      "bot": "I'm not capable of directly analyzing images. However, I can guide you on how to interpret the image based on the context provided.\n\nSince the image is related to 'hives-eczema-differences-body10.avif"
     }
   ]
 }
