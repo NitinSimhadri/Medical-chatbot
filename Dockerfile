@@ -2,10 +2,14 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Copy requirements first to leverage Docker cache
-COPY requirements.txt .
-# Install dependencies (allow failures to not block CI per user request)
-RUN python -m pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt || true
+# Copy requirements first to leverage Docker cache. This will copy
+# `requirements.txt` and `requirements-llm.txt` if present.
+COPY requirements*.txt .
+
+# Install dependencies. If `requirements-llm.txt` exists, install it too.
+RUN python -m pip install --upgrade pip \
+ && pip install --no-cache-dir -r requirements.txt \
+ && if [ -f requirements-llm.txt ]; then pip install --no-cache-dir -r requirements-llm.txt; fi
 
 # Copy application source
 COPY . .
