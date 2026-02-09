@@ -7,6 +7,8 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import logging
 from PIL import Image
+import io
+import math
 
 # Minimal, cleaned Flask app: no LLM/vector dependencies
 logging.basicConfig(level=logging.INFO)
@@ -388,6 +390,53 @@ def analyze_image():
                 }), 400
             return jsonify({"error": f"Invalid image file: {str(e)}"}), 400
 
+        # Re-open image for pixel analysis (verify() can close file)
+        image_file.seek(0)
+        try:
+            img = Image.open(image_file).convert('RGB')
+        except Exception:
+            return jsonify({"error": "Failed to open image for analysis"}), 400
+
+        # --- Steganography detection helper (simple LSB statistical test) ---
+        def detect_steganography(pil_image):
+            # Compute least significant bit (LSB) distribution across RGB channels
+            width, height = pil_image.size
+            pixels = pil_image.getdata()
+
+            total_bits = 0
+            ones = 0
+            # iterate pixels, count LSB ones across channels
+            for px in pixels:
+                for channel in px:  # R,G,B
+                    lsb = channel & 1
+                    ones += lsb
+                    total_bits += 1
+
+            if total_bits == 0:
+                return {"suspicious": False, "score": 0.0, "message": "Empty image"}
+
+            p = ones / total_bits  # proportion of 1s in LSB
+            # expected p for natural images is near 0.5; deviation indicates possible embedding
+            deviation = abs(p - 0.5)
+
+            # Compute a chi-square like score scaled by total bits
+            expected = total_bits * 0.5
+            chi2 = ((ones - expected) ** 2) / expected if expected > 0 else 0.0
+
+            # Normalize score to [0,1] roughly using logistic-like mapping
+            score = 1 - math.exp(-chi2 / max(1.0, total_bits / 1000.0))
+
+            # Heuristic thresholds (tunable): small deviations are normal.
+            suspicious = (deviation > 0.02) or (chi2 > 2000)
+
+            message = (
+                f"LSB ones ratio={p:.4f}, deviation={deviation:.4f}, chi2={chi2:.2f}. "
+                "Values outside small ranges may indicate hidden data in LSBs."
+            )
+
+            return {"suspicious": suspicious, "score": float(score), "message": message}
+
+
         # Get optional prompt from form
         prompt = request.form.get('prompt', 'Analyze this medical image and provide general health observations.')
 
@@ -412,10 +461,15 @@ def analyze_image():
 
                 add_to_history(user_id, f"Image analysis: {prompt[:100]}", answer[:200])
                 logger.info("analyze_image: RAG analysis success")
-                return jsonify({"success": True, "analysis": answer})
+                # include steganography detection summary as well
+                stego = detect_steganography(img)
+                return jsonify({"success": True, "analysis": answer, "steganography": stego})
             except Exception as e:
                 logger.exception(f"RAG image analysis failed: {e}")
                 # fall through to safe fallback
+
+            # Run steganography detection
+            stego = detect_steganography(img)
 
         # Safe fallback analysis (no LLM or RAG failed)
         # Include explicit disclaimer strings expected by tests: 'DISCLAIMER' and 'NOT a'
@@ -423,13 +477,14 @@ def analyze_image():
             f"Image received ({image_file.filename}). "
             "DISCLAIMER: THIS IS NOT a medical diagnosis. "
             "This is general informational content only. Always consult a healthcare professional for proper diagnosis. "
-            f"Analysis prompt: {prompt}"
+            f"Analysis prompt: {prompt}\n\n"
+            f"Steganography check: suspicious={stego['suspicious']}, score={stego['score']:.4f}. {stego['message']}"
         )
 
         add_to_history(user_id, f"Image analysis: {prompt[:100]}", analysis[:200])
 
         logger.info("analyze_image: success (fallback)")
-        return jsonify({"success": True, "analysis": analysis})
+        return jsonify({"success": True, "analysis": analysis, "steganography": stego})
 
     except Exception as e:
         logger.exception("Unexpected error in analyze_image")

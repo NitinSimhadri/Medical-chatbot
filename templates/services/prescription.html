@@ -172,13 +172,52 @@
     </div>
 
     <script>
-        function analyzePrescription(e) {
+        async function analyzePrescription(e) {
             e.preventDefault();
             const text = document.getElementById('prescription-text').value;
+            const fileInput = document.getElementById('prescription-image');
             const result = document.getElementById('analysis-result');
-            
+
+            // If an image file is selected, upload it to the server for analysis
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const form = new FormData();
+                form.append('image', file);
+                form.append('prompt', text || 'Please analyze this prescription image.');
+
+                result.innerHTML = '<em>Uploading image and analyzing…</em>';
+
+                try {
+                    const resp = await fetch('/analyze-image', { method: 'POST', body: form });
+                    const data = await resp.json();
+                    if (!resp.ok) {
+                        result.innerHTML = `<div style="color: #b91c1c;">Error: ${data.error || JSON.stringify(data)}</div>`;
+                        return;
+                    }
+
+                    // Show analysis and steganography check (if present)
+                    let html = '<div style="padding: 1rem; background: #f0f9ff; border-left: 4px solid var(--primary); border-radius: 0.25rem;">';
+                    html += `<h3 style="color: var(--primary); margin-bottom: 0.5rem;">📋 Prescription Analysis</h3>`;
+                    if (data.analysis) html += `<pre style="white-space:pre-wrap; color: var(--text-dark);">${data.analysis}</pre>`;
+                    if (data.steganography) {
+                        const s = data.steganography;
+                        html += `<p><strong>Steganography:</strong> suspicious=${s.suspicious}, score=${s.score.toFixed(4)}</p>`;
+                        html += `<p style="font-size:0.9rem;color:var(--text-light);">${s.message}</p>`;
+                    }
+                    html += `<p style="margin-top: 1rem; font-style: italic; color: var(--text-light);">✓ For detailed analysis, please consult with your healthcare provider</p>`;
+                    html += '</div>';
+
+                    result.innerHTML = html;
+                } catch (err) {
+                    result.innerHTML = `<div style="color: #b91c1c;">Upload failed: ${err}</div>`;
+                }
+
+                return;
+            }
+
+            // Fallback: no image selected — simple local text echo
             if (!text) {
-                alert('Please describe your medications');
+                alert('Please describe your medications or upload an image');
                 return;
             }
 

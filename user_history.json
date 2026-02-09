@@ -110,5 +110,19 @@
       "user": "Image analysis: Please analyze this medical image",
       "bot": "I'm not capable of directly analyzing images. However, I can guide you on how to interpret the image based on the context provided.\n\nSince the image is related to 'hives-eczema-differences-body10.avif"
     }
+  ],
+  "cd795371-791d-4ac3-9219-d31163285260": [
+    {
+      "timestamp": "2026-02-09T12:17:05.108479",
+      "user": "Image analysis: Please analyze this prescription image.",
+      "bot": "I'm unable to directly analyze the image you provided as I'm a text-based chatbot and do not have the capability to access or view external images. However, I can guide you on how to analyze a prescri"
+    }
+  ],
+  "438c3a29-4dc3-429b-9e7f-f75556c7cacb": [
+    {
+      "timestamp": "2026-02-09T12:17:06.629280",
+      "user": "Image analysis: Please analyze this prescription image.",
+      "bot": "I'm unable to directly analyze the image you provided as I'm a text-based chatbot and do not have the capability to access or view external images. However, I can guide you on how to analyze a prescri"
+    }
   ]
 }
