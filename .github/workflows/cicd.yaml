@@ -258,6 +258,7 @@ jobs:
           check "${{ secrets.SMTP_PASS }}" SMTP_PASS
           check "${{ secrets.EMAIL_FROM }}" EMAIL_FROM
 
+          if [ $missing -ne 0 ]; then
             echo "One or more required secrets are missing. Add them in Settings → Secrets → Actions.";
             exit 1
           fi
@@ -267,43 +268,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          REQ=requirements.txt
-          LLM=requirements-llm.txt
-          echo "Checking ${REQ} for required runtime packages..."
-          cat > /tmp/check_requirements.py <<'PY'
-import sys
-req='requirements.txt'
-llm='requirements-llm.txt'
-required=['flask','python-dotenv','Pillow','requests','pypdf','cryptography','pytesseract']
-existing=set()
-for f in (req,llm):
-    try:
-        for l in open(f):
-            l=l.split('#',1)[0].strip()
-            if not l: continue
-            pkg=l.split('==')[0].split('>=')[0].split('<=')[0].split('>')[0].split('<')[0].strip().lower()
-            existing.add(pkg)
-    except FileNotFoundError:
-        pass
-missing=[p for p in required if p.lower() not in existing]
-if missing:
-    print('Missing packages:', missing)
-    with open(req,'a') as fh:
-        for p in missing:
-            fh.write(p+'\n')
-    sys.exit(2)
-else:
-    print('No missing runtime packages')
-    sys.exit(0)
-PY
-
-          python /tmp/check_requirements.py || (
-            git config user.email "github-actions[bot]@users.noreply.github.com" &&
-            git config user.name "github-actions[bot]" &&
-            git add ${REQ} &&
-            git commit -m "ci: add missing runtime packages to requirements.txt" || true &&
+          echo "Running requirements check script"
+          python .github/scripts/check_requirements.py || rc=$?; if [ "$${rc:-0}" -eq 2 ]; then
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git config user.name "github-actions[bot]"
+            git add requirements.txt
+            git commit -m "ci: add missing runtime packages to requirements.txt" || true
             git push || true
-          )
+          elif [ "$${rc:-0}" -ne 0 ]; then
+            exit $rc
+          fi
 
   build-and-push:
     name: Build & Push to ECR
