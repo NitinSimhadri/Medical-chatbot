@@ -1,15 +1,23 @@
-name: Deploy Application Docker Image to EC2 instance
+name: CI/CD — Build to ECR and deploy to EC2 (self-hosted)
+
+name: CI/CD — Build to ECR and deploy to EC2 (self-hosted)
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
+  workflow_dispatch:
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  Continuous-Integration:
+  build-and-push:
+    name: Build & Push to ECR
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -22,20 +30,35 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build & push Docker image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
-        run: |
-          set -euxo pipefail
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest || true
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-  Continuous-Deployment:
-    needs: Continuous-Integration
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push image
+        id: build-image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:cache
+          cache-to: type=inline
+
+  deploy-self-hosted:
+    name: Deploy on self-hosted EC2
+    needs: build-and-push
     runs-on: self-hosted
-
     steps:
+      - name: Ensure Docker is available (self-hosted)
+        run: |
+          docker version
+          docker info || true
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -43,27 +66,27 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
+      - name: Login to Amazon ECR (self-hosted)
+        id: login-ecr-self
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Deploy container on EC2
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REGISTRY: ${{ steps.login-ecr-self.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
         run: |
           set -euxo pipefail
 
-          docker version
-          docker ps
-
           IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
-          docker pull $IMAGE || true
+          echo "Pulling image: $IMAGE"
+          docker pull "$IMAGE"
 
+          # Stop/remove existing container if present (ignore failures)
           docker stop medicalbot || true
           docker rm medicalbot || true
 
+          # Run the new container (fail if run fails)
           docker run -d \
             --name medicalbot \
             --restart unless-stopped \
@@ -73,17 +96,33 @@ jobs:
             -e AWS_DEFAULT_REGION="${{ secrets.AWS_DEFAULT_REGION }}" \
             -e PINECONE_API_KEY="${{ secrets.PINECONE_API_KEY }}" \
             -e GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}" \
-            $IMAGE || true
+            -e HUGGING_FACE_API_KEY="${{ secrets.HUGGING_FACE_API_KEY }}" \
+            -e GOOGLE_MAPS_API_KEY="${{ secrets.GOOGLE_MAPS_API_KEY }}" \
+            -e OCR_SPACE_API_KEY="${{ secrets.OCR_SPACE_API_KEY }}" \
+            -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            -e FERNET_KEY="${{ secrets.FERNET_KEY }}" \
+            -e SMTP_USER="${{ secrets.SMTP_USER }}" \
+            -e SMTP_PASS="${{ secrets.SMTP_PASS }}" \
+            -e EMAIL_FROM="${{ secrets.EMAIL_FROM }}" \
+            "$IMAGE"
 
-          sleep 15
-          docker ps || true
-          docker inspect -f '{{.State.Running}}' medicalbot || true
-          docker logs medicalbot || true
+          sleep 10
+          docker ps --filter name=medicalbot
+          docker inspect -f '{{.State.Running}}' medicalbot
+          docker logs --tail 200 medicalbot
 
-# Required repository secrets:
+# Required repository secrets (add these in Settings → Secrets → Actions):
 # - AWS_ACCESS_KEY_ID
 # - AWS_SECRET_ACCESS_KEY
 # - AWS_DEFAULT_REGION
-# - ECR_REPO            (ECR repository name, e.g. medicalbot)
+# - ECR_REPO
 # - PINECONE_API_KEY
 # - GROQ_API_KEY
+# - HUGGING_FACE_API_KEY
+# - GOOGLE_MAPS_API_KEY
+# - OCR_SPACE_API_KEY
+# - SECRET_KEY
+# - FERNET_KEY
+# - SMTP_USER
+# - SMTP_PASS
+# - EMAIL_FROM
