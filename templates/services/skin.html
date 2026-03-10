@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skin & Hair Care - MediBot AI</title>
+    <title>Skin & Hair Analysis - MediBot AI</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -55,7 +55,7 @@
     </nav>
 
     <div class="container">
-        <h1>Skin & Hair Care (Image-based)</h1>
+        <h1>Skin & Hair Analysis (Image-based)</h1>
         <p>You can upload images here for basic informational guidance and/or enter a brief description of the issue. Note: This is educational only; no diagnostic claims. For concerning findings consult a dermatologist or trichologist.</p>
         <form id="skinForm">
             <label>Describe issue (e.g., acne, dry skin, hair loss, dandruff):<br/>
@@ -71,6 +71,15 @@
         </form>
         <div id="preview" style="margin-top:16px"></div>
         <div id="skinResult" style="margin-top:16px;font-weight:600;"></div>
+        <div class="card">
+            <h3>How to use</h3>
+            <ol style="color:var(--text-light);">
+                <li>Describe the issue and, if available, upload an image using the form above.</li>
+                <li>Click "Get guidance" to receive general care suggestions and possible tests.</li>
+                <li>Preview the image before submitting if you want to confirm the selected photo.</li>
+                <li>Seek professional evaluation for persistent, worsening, or unclear conditions.</li>
+            </ol>
+        </div>
         <p><a href="/">Return to chat</a></p>
     </div>
     <script>

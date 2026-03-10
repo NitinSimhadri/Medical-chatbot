@@ -1,0 +1,79 @@
+[
+  {
+    "id": "9012100b-728c-4bdb-9018-ba870ea3de72",
+    "user": "simhadrinitin@gmail.com",
+    "email": "simhadrinitin@gmail.com",
+    "type": "medication",
+    "time": "12:40",
+    "frequency": "once",
+    "note": "",
+    "created_at": "2026-03-06T12:39:32.725832",
+    "next_run": null,
+    "active": false,
+    "last_sent": "2026-03-06T12:40:25.036252"
+  },
+  {
+    "id": "2131adcc-536e-4cfb-aa9c-9fb9fbc9da9c",
+    "user": "simhadrinitin@gmail.com",
+    "email": "nitin.simhadri@gmail.com",
+    "type": "exercise",
+    "time": "12:42",
+    "frequency": "once",
+    "note": "",
+    "created_at": "2026-03-06T12:42:12.649070",
+    "next_run": "2026-03-07T12:42:00",
+    "active": true
+  },
+  {
+    "id": "c6b2400c-bb4e-4253-9eda-095da539c69e",
+    "user": "simhadrinitin@gmail.com",
+    "email": "nitin.simhadri@gmail.com",
+    "type": "checkup",
+    "time": "14:00",
+    "frequency": "once",
+    "note": "",
+    "created_at": "2026-03-06T13:59:27.310618",
+    "next_run": null,
+    "active": false,
+    "last_sent": "2026-03-06T14:00:28.002606"
+  },
+  {
+    "id": "b1c9d355-5401-4231-a77c-925b731fa125",
+    "user": "simhadrinitin@gmail.com",
+    "email": "simhadrinitin@gmail.com",
+    "type": "medication",
+    "time": "14:01",
+    "frequency": "once",
+    "note": "",
+    "created_at": "2026-03-06T14:00:15.767947",
+    "next_run": null,
+    "active": false,
+    "last_sent": "2026-03-06T14:01:28.040146"
+  },
+  {
+    "id": "07e1918e-3992-44f2-8e18-b4ba227fbe2f",
+    "user": "simhadrinitin@gmail.com",
+    "email": "simhadrinitin@gmail.com",
+    "type": "checkup",
+    "time": "14:14",
+    "frequency": "once",
+    "note": "",
+    "created_at": "2026-03-06T14:13:51.078928",
+    "next_run": null,
+    "active": false,
+    "last_sent": "2026-03-06T14:14:28.192483"
+  },
+  {
+    "id": "b539dd25-0d96-4b4c-8d45-025ffac4fa74",
+    "user": "simhadrinitin@gmail.com",
+    "email": "simhadrinitin@gmail.com",
+    "type": "vitals",
+    "time": "14:20",
+    "frequency": "daily",
+    "note": "",
+    "created_at": "2026-03-06T14:18:47.268283",
+    "next_run": "2026-03-07T14:20:00",
+    "active": true,
+    "last_sent": "2026-03-06T14:20:17.663304"
+  }
+]

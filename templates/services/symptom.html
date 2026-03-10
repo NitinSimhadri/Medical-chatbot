@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #2563eb;
+            --primary: #0ea5ff; /* brighter, higher-contrast blue */
             --bg-light: #ffffff;
             --bg-lighter: #f8fafc;
             --text-dark: #1e293b;
@@ -29,7 +29,7 @@
         .navbar { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 1rem 0; }
         body[data-theme="dark"] .navbar { background: rgba(15, 23, 42, 0.95); }
         .navbar-content { max-width: 1400px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; }
-        .logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+        .logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
         .nav-link { color: var(--text-light); text-decoration: none; font-weight: 500; }
         .card { background: var(--bg-light); border-radius: 1rem; padding: 2rem; box-shadow: var(--shadow-md); border: 1px solid var(--border); margin-bottom: 2rem; }
         h1, h2 { color: var(--text-dark); margin-bottom: 1rem; }
@@ -37,9 +37,10 @@
         .step { display: none; }
         .step.active { display: block; }
         .question { margin: 1.5rem 0; }
-        .option-btn { background: var(--bg-lighter); border: 1px solid var(--border); color: var(--text-dark); padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 0.5rem; cursor: pointer; width: 100%; text-align: left; transition: all 0.2s; font-weight: 500; }
-        .option-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
-        .btn { padding: 0.75rem 1.5rem; background: linear-gradient(135deg, var(--primary), #3b82f6); color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; }
+        .option-btn { background: var(--bg-lighter); border: 1px solid var(--border); color: var(--text-dark); padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 0.5rem; cursor: pointer; width: 100%; text-align: left; transition: all 0.18s ease; font-weight: 500; }
+        .option-btn:hover { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 6px 18px rgba(14,165,255,0.14); transform: translateY(-2px); }
+        .option-btn.selected { background: var(--primary) !important; color: white !important; box-shadow: 0 8px 22px rgba(14,165,255,0.18) !important; }
+        .btn { padding: 0.75rem 1.5rem; background: linear-gradient(135deg, var(--primary), #2563eb); color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; box-shadow: 0 8px 20px rgba(37,99,235,0.12); }
         .btn:hover { transform: translateY(-2px); }
         .risk-indicator { padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; font-weight: 600; }
         .risk-low { background: rgba(16, 185, 129, 0.2); color: #10b981; }
@@ -133,6 +134,15 @@
             <p>This tool is for informational purposes only and does not constitute medical advice, diagnosis, or treatment. Always consult with a qualified healthcare professional for any health concerns. In case of emergency, call your local emergency services immediately.</p>
         </div>
 
+        <div class="card">
+            <h3>How to use</h3>
+            <ol style="color:var(--text-light);">
+                <li>Step through the symptom questions selecting applicable options.</li>
+                <li>Provide additional details (age, existing conditions) when prompted.</li>
+                <li>Click "Analyze Symptoms" to see risk level and suggested next steps.</li>
+                <li>For urgent or severe findings, follow the displayed advice and seek immediate care.</li>
+            </ol>
+        </div>
         <p><a href="/">Return to chat</a></p>
     </div>
 

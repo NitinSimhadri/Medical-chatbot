@@ -305,16 +305,6 @@
       "timestamp": "2026-03-10T23:28:34.973644",
       "user": "Order protein meals: pincode= lat=12.984372433965058 lng=77.73268584879223 calories=None",
       "bot": "Found 8"
-    },
-    {
-      "timestamp": "2026-03-10T23:34:07.967791",
-      "user": "Order protein meals: pincode= lat=12.984386246185286 lng=77.73266963399183 calories=None",
-      "bot": "Found 8"
-    },
-    {
-      "timestamp": "2026-03-10T23:34:35.701735",
-      "user": "Order protein meals: pincode= lat=12.984386246185286 lng=77.73266963399183 calories=None",
-      "bot": "Found 8"
     }
   ]
 }

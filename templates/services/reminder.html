@@ -68,6 +68,10 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label for="reminder-email">Email for notifications</label>
+                    <input type="email" id="reminder-email" placeholder="your.email@example.com" required>
+                </div>
+                <div class="form-group">
                     <label for="reminder-note">Notes (optional)</label>
                     <input type="text" id="reminder-note" placeholder="Add any notes...">
                 </div>
@@ -97,28 +101,65 @@
     </div>
 
     <script>
-        function addReminder(e) {
+        async function addReminder(e) {
             e.preventDefault();
             const type = document.getElementById('reminder-type').value;
             const time = document.getElementById('reminder-time').value;
             const frequency = document.getElementById('reminder-frequency').value;
             const note = document.getElementById('reminder-note').value;
+            const email = document.getElementById('reminder-email').value;
 
-            const list = document.getElementById('reminders-list');
-            const item = document.createElement('div');
-            item.className = 'reminder-item';
-            item.innerHTML = `
-                <div>
-                    <strong>${type}</strong><br>
-                    <small style="color: var(--text-light);">${note || 'Reminder'}</small>
-                </div>
-                <span class="reminder-time">${time}</span>
-            `;
-            list.appendChild(item);
+            const payload = { type: type, time: time, frequency: frequency, note: note, email: email };
 
-            document.querySelector('form').reset();
-            alert('Reminder set successfully!');
+            try {
+                const resp = await fetch('/api/reminders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await resp.json();
+                if (data && data.success) {
+                    loadReminders();
+                    document.querySelector('form').reset();
+                    alert('Reminder set successfully! You will receive email notifications.');
+                } else {
+                    alert('Failed to set reminder: ' + (data && data.error ? data.error : 'Unknown error'));
+                }
+            } catch (err) {
+                console.error('Error creating reminder', err);
+                alert('Network error when creating reminder.');
+            }
         }
+
+        async function loadReminders() {
+            try {
+                const resp = await fetch('/api/reminders');
+                const data = await resp.json();
+                const list = document.getElementById('reminders-list');
+                list.innerHTML = '';
+                if (data && data.success && Array.isArray(data.reminders)) {
+                    data.reminders.forEach(r => {
+                        const item = document.createElement('div');
+                        item.className = 'reminder-item';
+                        item.innerHTML = `
+                            <div>
+                                <strong>${r.type}</strong><br>
+                                <small style="color: var(--text-light);">${r.note || ''}</small>
+                            </div>
+                            <span class="reminder-time">${r.time}</span>
+                        `;
+                        list.appendChild(item);
+                    });
+                } else {
+                    list.innerHTML = '<p style="color: var(--text-light)">No reminders set.</p>';
+                }
+            } catch (e) {
+                console.error('Failed to load reminders', e);
+            }
+        }
+
+        // Load existing reminders on page load
+        document.addEventListener('DOMContentLoaded', loadReminders);
 
         document.body.setAttribute('data-theme', localStorage.getItem('medibot-theme') || 'light');
     </script>

@@ -51,6 +51,12 @@
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
         th { background: var(--bg-lighter); font-weight: 600; }
+        .chart-box { background: var(--bg-lighter); padding: 1rem; border-radius: 8px; margin-top: 1rem; }
+        .alert { padding: 0.75rem 1rem; border-radius: 6px; margin-top: 12px; }
+        .alert.warn { background: #fff7ed; border-left: 4px solid #f59e0b; color: #92400e; }
+        .alert.danger { background: #fff1f2; border-left: 4px solid #ef4444; color: #9f1239; }
+        .stat-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-top:12px }
+        .stat-card { background: var(--bg-lighter); padding:10px;border-radius:8px;text-align:center }
     </style>
 </head>
 <body data-theme="light">
@@ -80,8 +86,12 @@
             <button id="saveReading" type="button">Save reading</button>
             <button id="viewHistory" type="button">View history</button>
             <button id="exportCsv" type="button">Export CSV</button>
+            <button id="analyzeTrends" type="button" class="btn-secondary">Analyze Trends</button>
         </div>
         <div id="history" style="margin-top:12px;display:none;background:rgba(255,255,255,0.03);padding:8px;border-radius:6px;"></div>
+        <div id="alerts"></div>
+        <div id="stats" class="stat-grid"></div>
+        <div id="chartContainer" class="chart-box" style="display:none"><canvas id="bpChart" height="160"></canvas></div>
         <h3 style="margin-top:18px">How to use</h3>
         <ul>
             <li>Use a validated BP monitor or wearable to measure values.</li>
@@ -186,6 +196,78 @@
             const blob = new Blob([csv], {type:'text/csv'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = 'bp_readings.csv'; a.click(); URL.revokeObjectURL(url);
+        });
+    </script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let bpChart = null;
+
+        function computeStats(readings){
+            if(!readings || readings.length===0) return null;
+            const nums = readings.map(r=>({
+                t: r.time,
+                s: parseFloat(r.systolic)||null,
+                d: parseFloat(r.diastolic)||null,
+                hr: parseFloat(r.hr)||null
+            }));
+            const validS = nums.filter(n=>n.s!==null).map(n=>n.s);
+            const validD = nums.filter(n=>n.d!==null).map(n=>n.d);
+            const validHr = nums.filter(n=>n.hr!==null).map(n=>n.hr);
+            const mean = arr => arr.length? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length): null;
+            return { mean_s: mean(validS), mean_d: mean(validD), mean_hr: mean(validHr), count: nums.length };
+        }
+
+        function detectPatterns(readings){
+            // simple heuristic: persistent high BP if 3 of last 5 systolic >=140 or diastolic>=90
+            const last = readings.slice(-5).map(r=>({s:parseFloat(r.systolic)||0,d:parseFloat(r.diastolic)||0,hr:parseFloat(r.hr)||0}));
+            let highCount = 0; let lowCount=0; let tachy=0;
+            for(const r of last){ if(r.s>=140 || r.d>=90) highCount++; if(r.s<=90||r.d<=60) lowCount++; if(r.hr>=110) tachy++; }
+            const res = [];
+            if(highCount >= 3) res.push({type:'danger', text:'Persistent elevated blood pressure detected in recent readings. Consider contacting your clinician for review and possible treatment adjustment.'});
+            if(lowCount >= 3) res.push({type:'warn', text:'Repeated low blood pressure readings detected. Ensure hydration, avoid rapid standing, and consult your clinician if symptomatic.'});
+            if(tachy >= 2) res.push({type:'warn', text:'Frequent elevated heart rate readings observed. Evaluate for caffeine, stress, or medical causes; seek review if symptomatic.'});
+            return res;
+        }
+
+        function renderStatsUI(stats){
+            const el = document.getElementById('stats'); el.innerHTML='';
+            if(!stats) return;
+            const cards = [
+                {k:'mean_s', label:'Avg Systolic', val: stats.mean_s},
+                {k:'mean_d', label:'Avg Diastolic', val: stats.mean_d},
+                {k:'mean_hr', label:'Avg HR', val: stats.mean_hr},
+                {k:'count', label:'Readings', val: stats.count}
+            ];
+            for(const c of cards){ const d = document.createElement('div'); d.className='stat-card'; d.innerHTML = `<div style="font-size:0.9rem;color:var(--text-light)">${c.label}</div><div style="font-size:1.2rem;font-weight:700">${c.val===null?'-':c.val}</div>`; el.appendChild(d); }
+        }
+
+        function renderChart(readings){
+            const labels = readings.map(r=> new Date(r.time).toLocaleString());
+            const syst = readings.map(r=> r.systolic? parseFloat(r.systolic): null);
+            const diast = readings.map(r=> r.diastolic? parseFloat(r.diastolic): null);
+            const hr = readings.map(r=> r.hr? parseFloat(r.hr): null);
+            const ctx = document.getElementById('bpChart').getContext('2d');
+            if(bpChart){ bpChart.destroy(); bpChart = null; }
+            bpChart = new Chart(ctx, {
+                type:'line', data:{ labels, datasets:[
+                    { label:'Systolic', data:syst, borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.08)', spanGaps:true },
+                    { label:'Diastolic', data:diast, borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.08)', spanGaps:true },
+                    { label:'Heart rate', data:hr, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.06)', spanGaps:true, yAxisID:'y_hr' }
+                ] }, options:{ interaction:{mode:'index', intersect:false}, scales:{ y:{ title:{display:true, text:'BP (mmHg)' } , beginAtZero:false }, y_hr:{ position:'right', grid:{display:false}, title:{display:true,text:'HR (bpm)'} } } }
+            });
+            document.getElementById('chartContainer').style.display='block';
+        }
+
+        document.getElementById('analyzeTrends').addEventListener('click', function(){
+            const arr = getReadings();
+            if(arr.length===0){ alert('No readings to analyze.'); return }
+            const stats = computeStats(arr);
+            renderStatsUI(stats);
+            const patterns = detectPatterns(arr);
+            const alertsEl = document.getElementById('alerts'); alertsEl.innerHTML='';
+            for(const p of patterns){ const d = document.createElement('div'); d.className = `alert ${p.type==='danger'?'danger':'warn'}`; d.innerText = p.text; alertsEl.appendChild(d); }
+            renderChart(arr.slice(-30)); // render last 30
         });
     </script>
 </body>

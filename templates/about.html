@@ -117,7 +117,7 @@
                 </div>
                 <div class="service-item">
                     <div class="service-icon"><i class="fas fa-heartbeat"></i></div>
-                    <div class="service-name">BP & HR Monitoring</div>
+                    <div class="service-name">BP & Heart Rate</div>
                 </div>
                 <div class="service-item">
                     <div class="service-icon"><i class="fas fa-apple-alt"></i></div>
@@ -125,7 +125,7 @@
                 </div>
                 <div class="service-item">
                     <div class="service-icon"><i class="fas fa-dna"></i></div>
-                    <div class="service-name">Skin Analysis</div>
+                    <div class="service-name">Skin & Hair Analysis</div>
                 </div>
                 <div class="service-item">
                     <div class="service-icon"><i class="fas fa-pills"></i></div>
@@ -143,14 +143,72 @@
         </div>
 
         <div class="card">
+            <h2><i class="fas fa-list" style="color: var(--primary); margin-right: 0.5rem;"></i> Service Details</h2>
+            <p>Below is a short description of each service available in MediBot AI so you know what each feature does and how to use it.</p>
+            <div style="margin-top:1rem;">
+                <h3 style="margin-bottom:0.5rem;">AI Chat</h3>
+                <p style="color:var(--text-light);">Conversational assistant that answers general health questions. Uses heuristics for quick replies, and a RAG pipeline (when configured) for evidence-backed answers.</p>
+
+                <h3 style="margin-bottom:0.5rem;">Symptom Checker</h3>
+                <p style="color:var(--text-light);">Guided symptom intake that suggests possible conditions and next steps. Intended for informational use and not a diagnosis.</p>
+
+                <h3 style="margin-bottom:0.5rem;">Prescription Analysis</h3>
+                <p style="color:var(--text-light);">Upload prescription images to extract text via OCR, identify medication lines, and provide plain-language explanations and likely indications. OCR uses local Tesseract if available, with OCR.space as a configurable fallback.</p>
+
+                <h3 style="margin-bottom:0.5rem;">Medication Tracker</h3>
+                <p style="color:var(--text-light);">Store and view your current medications, set reminders, and track adherence over time. Integrates with the Reminder system to notify you by email.</p>
+
+                <h3 style="margin-bottom:0.5rem;">Reminders & Email Notifications</h3>
+                <p style="color:var(--text-light);">Create medication or appointment reminders. The system can send email notifications using configured SMTP credentials; reminders are persisted locally and can be encrypted at rest.</p>
+
+                <h3 style="margin-bottom:0.5rem;">Appointment Booking</h3>
+                <p style="color:var(--text-light);">Search for nearby clinics (Google Places integration) and save booking details. Location search uses geocoding + expanding radius fallback for coverage.</p>
+
+                <h3 style="margin-bottom:0.5rem;">BP & Heart Rate / Vitals / BMI Tools</h3>
+                <p style="color:var(--text-light);">Useful calculators and trackers for common health metrics like blood pressure, heart rate, BMI, and other vitals. Helps you monitor trends over time.</p>
+
+                <h3 style="margin-bottom:0.5rem;">Skin Analysis</h3>
+                <p style="color:var(--text-light);">Upload skin images for automated analysis (image classification). Uses hosted Hugging Face models when configured and local model fallback where available. Provides guidance and suggests when to seek specialist care.</p>
+
+                <h3 style="margin-bottom:0.5rem;">Report Generator</h3>
+                <p style="color:var(--text-light);">Create simple summaries and printable reports from your stored data and chat history for sharing with healthcare providers.</p>
+
+                <h3 style="margin-bottom:0.5rem;">Health Vault</h3>
+                <p style="color:var(--text-light);">The Health Vault is your personal, secure storage area for medical records, prescriptions, lab reports, and notes. Records saved here are tied to your account, stored locally on the server, and can be encrypted at rest when you set a <code>FERNET_KEY</code>. Think of it as a private file cabinet where you keep documents you may want to review or share with clinicians.</p>
+
+                <h3 style="margin-bottom:0.5rem;">Health Analytics</h3>
+                <p style="color:var(--text-light);">Health Analytics processes time-series and summary data (vitals, weight, activity, medication adherence) to generate trends, charts, and insights. It aggregates measurements from your tracked entries to surface patterns (for example: rising blood pressure over weeks, weight change, or adherence gaps) and provides visual reports and simple suggestions. Analytics uses data that you (or connected tools) record — it does not automatically access other files in your Health Vault unless you explicitly export or link them.</p>
+
+                <h3 style="margin-bottom:0.5rem;">Chat History</h3>
+                <p style="color:var(--text-light);">Your recent conversations with the bot are stored locally so you can review past guidance and follow up on previous recommendations.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><i class="fas fa-shield-alt" style="color: var(--primary); margin-right: 0.5rem;"></i> How We Protect Your Data</h2>
+            <p>Your privacy and the security of your medical information are a top priority. Below we summarise the measures implemented in MediBot AI to protect user data.</p>
+            <ul>
+                <li><strong>Encryption at rest:</strong> Sensitive JSON stores (users, reminders, appointments, histories) can be encrypted using <em>Fernet</em> symmetric encryption when a secure key is provided via the <code>FERNET_KEY</code> environment variable. If enabled, files are stored encrypted on disk.</li>
+                <li><strong>Atomic writes & backups:</strong> All app data is written atomically and timestamped backups are created in the <code>backups/</code> folder to reduce the risk of data loss during crashes or interruptions.</li>
+                <li><strong>Least privilege & access control:</strong> Endpoints that operate on personal data (uploading prescriptions, booking, reminders) require authentication. Session cookies are used to isolate user data.</li>
+                <li><strong>Network security:</strong> We recommend running MediBot behind HTTPS (TLS) and using firewall rules to limit exposure. Do not run the app in production without HTTPS.</li>
+                <li><strong>Secrets management:</strong> API keys and passwords are loaded from environment variables (.env) and not checked into source control. Keep your <code>FERNET_KEY</code>, SMTP credentials, and any LLM/API keys secret and backed up securely.</li>
+                <li><strong>Minimal external sharing:</strong> The app uses free, public sources (openFDA) for drug information and only contacts external services when needed (OCR.space when configured, Google Maps for bookings if a key is provided). We do not share user-uploaded prescription images to third parties unless explicitly configured; if OCR.space is enabled the image bytes are sent to that API only as a fallback and only if a key is present.</li>
+                <li><strong>Data retention & user control:</strong> Data is stored locally in JSON files; users can request deletion (the developer can remove records). We recommend adding a user-facing delete/export feature and a retention policy for production deployments.</li>
+                <li><strong>Operational security:</strong> Keep the server OS and Python dependencies up to date, and rotate the <code>FERNET_KEY</code> and SMTP credentials periodically.</li>
+            </ul>
+            <p style="margin-top: 0.5rem; color: var(--text-light);">Important: If you enable encryption by setting <code>FERNET_KEY</code>, losing that key will make encrypted files unrecoverable. Store the key in a secure secrets manager or offline backup.</p>
+        </div>
+
+        <div class="card">
             <h2><i class="fas fa-star" style="color: var(--primary); margin-right: 0.5rem;"></i> Why Use MediBot AI?</h2>
             <ul>
-                <li><strong>Evidence-Based Information:</strong> Responses backed by medical literature and research</li>
-                <li><strong>24/7 Availability:</strong> Get health information whenever you need it</li>
-                <li><strong>Comprehensive Tools:</strong> From calculators to AI chat, all in one place</li>
-                <li><strong>User-Friendly Interface:</strong> Modern, intuitive design for easy navigation</li>
-                <li><strong>Data Privacy:</strong> Your health information is secure and private</li>
-                <li><strong>Free Access:</strong> All core services are available without cost</li>
+                <li><strong>Evidence-Based Information:</strong> Responses are backed by curated sources and public datasets (for drug labels we use openFDA where available).</li>
+                <li><strong>RAG + LLM:</strong> The app uses retrieval-augmented generation (RAG) when configured (Groq/Pinecone or local RAG), falling back to local models or heuristic responses so it works without paid APIs.</li>
+                <li><strong>Comprehensive Tools:</strong> From calculators and clinic search to prescription OCR and medication explanations.</li>
+                <li><strong>User-Friendly Interface:</strong> Clean, responsive UI with accessible workflows for uploading prescriptions, setting reminders, and booking appointments.</li>
+                <li><strong>Free-First Design:</strong> Core functionality uses free sources (openFDA, local models, local inference). Optional integrations (cloud-hosted LLMs) are available but not required.</li>
+                <li><strong>Privacy by design:</strong> Sensitive data is stored locally, encrypted when enabled, and not repackaged or sold.</li>
             </ul>
         </div>
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Appointment - MediCare Pro</title>
+    <title>Appointment Booking - MediBot AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -491,8 +491,8 @@
     <!-- Main Content -->
     <div class="container">
         <div class="hero">
-            <h1>Find & Book Healthcare Appointments</h1>
-            <p>Connect with verified healthcare providers in your area. Get instant appointment booking with real-time availability.</p>
+            <h1>Appointment Booking</h1>
+            <p>Connect with verified healthcare providers in your area. Find nearby clinics and save booking details.</p>
         </div>
 
         <!-- Search Section -->
@@ -594,6 +594,8 @@
     </div>
 
     <script>
+        // Google Maps API key provided by server (empty if not configured)
+        const GOOGLE_MAPS_API_KEY = "{{ GOOGLE_MAPS_API_KEY }}";
         // Theme management
         const themeToggle = document.getElementById('themeToggle');
         const body = document.body;
@@ -678,7 +680,7 @@
             if (e.key === 'Enter') sendChatMessage();
         });
 
-        // Real clinic data simulation (in production, use Google Places API or similar)
+        // Real clinic data simulation (used when no Google API key configured)
         const mockClinicAPI = {
             // Simulate API call delay
             searchClinics: async function(pincode, concern = '') {
@@ -958,7 +960,23 @@
             searchText.innerHTML = '<div class="loading"></div> Searching...';
 
             try {
-                const clinics = await mockClinicAPI.searchClinics(pincode, concern);
+                let clinics = [];
+                if (GOOGLE_MAPS_API_KEY && GOOGLE_MAPS_API_KEY.trim() !== '') {
+                    // Use server-side Google Places integration
+                    const resp = await fetch('/api/nearby-clinics', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pincode: pincode, concern: concern })
+                    });
+                    const data = await resp.json();
+                    if (data && data.success) {
+                        clinics = data.clinics;
+                    } else {
+                        throw new Error(data && data.error ? data.error : 'Places API error');
+                    }
+                } else {
+                    clinics = await mockClinicAPI.searchClinics(pincode, concern);
+                }
                 displayClinics(clinics, pincode);
             } catch (error) {
                 console.error('Error fetching clinics:', error);
@@ -972,7 +990,7 @@
         });
 
         function displayClinics(clinics, pincode) {
-            if (clinics.length === 0) {
+            if (!clinics || clinics.length === 0) {
                 clinicsList.innerHTML = `
                     <div class="clinic-card">
                         <p>😔 No clinics found for pincode ${pincode}. Try a nearby pincode or different medical concern.</p>
@@ -982,51 +1000,53 @@
                     </div>
                 `;
             } else {
-                clinicsList.innerHTML = clinics.map(clinic => `
+                clinicsList.innerHTML = clinics.map(clinic => {
+                    const name = clinic.name || clinic.title || 'Unknown Provider';
+                    const address = clinic.address || clinic.vicinity || clinic.formatted_address || 'Address not provided';
+                    const phone = clinic.phone || clinic.formatted_phone_number || 'Phone not available';
+                    const rating = clinic.rating || clinic.user_ratings_total || 'N/A';
+                    const reviews = clinic.user_ratings_total || clinic.reviews || 0;
+                    const distance = clinic.distance || clinic._distance || 'N/A';
+                    const specialties = (clinic.specialties && clinic.specialties[0]) ? clinic.specialties[0] : 'General';
+                    const encoded = encodeURIComponent(JSON.stringify(clinic));
+
+                    return `
                     <div class="clinic-card">
                         <div class="clinic-header">
-                            <div class="clinic-icon">${clinic.image}</div>
+                            <div class="clinic-icon">🏥</div>
                             <div class="clinic-info">
-                                <h3>${clinic.name}</h3>
-                                <span class="clinic-specialty">${clinic.specialties[0]}</span>
+                                <h3>${name}</h3>
+                                <span class="clinic-specialty">${specialties}</span>
                             </div>
                         </div>
                         <div class="clinic-details">
                             <div class="clinic-detail">
                                 <i class="fas fa-map-marker-alt"></i>
-                                ${clinic.address}
+                                ${address}
                             </div>
                             <div class="clinic-detail">
                                 <i class="fas fa-phone"></i>
-                                ${clinic.phone}
+                                ${phone}
                             </div>
                             <div class="clinic-detail">
                                 <i class="fas fa-route"></i>
-                                ${clinic.distance} away
-                            </div>
-                            <div class="clinic-detail">
-                                <i class="fas fa-clock"></i>
-                                ${clinic.availability}
+                                ${distance} away
                             </div>
                             <div class="clinic-detail">
                                 <i class="fas fa-star"></i>
-                                ${clinic.rating} (${clinic.reviews} reviews)
-                            </div>
-                            <div class="clinic-detail">
-                                <i class="fas fa-rupee-sign"></i>
-                                ${clinic.price}
+                                ${rating} (${reviews} reviews)
                             </div>
                         </div>
                         <div class="clinic-actions">
-                            <button class="btn btn-secondary" onclick="viewClinicDetails(${clinic.id})">
+                            <button class="btn btn-secondary" onclick="viewClinicDetailsEncoded('${encoded}')">
                                 <i class="fas fa-info-circle"></i> Details
                             </button>
-                            <button class="btn btn-primary" onclick="selectClinic(${clinic.id}, '${clinic.name}')">
+                            <button class="btn btn-primary" onclick="selectClinicFromJson('${encoded}')">
                                 <i class="fas fa-calendar-plus"></i> Book Now
                             </button>
                         </div>
-                    </div>
-                `).join('');
+                    </div>`;
+                }).join('');
             }
 
             clinicResults.style.display = 'block';
@@ -1044,10 +1064,29 @@
         const appointmentForm = document.getElementById('appointmentForm');
         const bookingConfirmation = document.getElementById('bookingConfirmation');
 
-        function selectClinic(id, name) {
-            document.getElementById('selectedClinic').value = id;
-            bookingModal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
+        function selectClinicFromJson(encoded) {
+            try {
+                const clinic = JSON.parse(decodeURIComponent(encoded));
+                const placeId = clinic.place_id || clinic.id;
+                document.getElementById('selectedClinic').value = placeId;
+                // show clinic name in modal title
+                const modalTitle = document.querySelector('.modal-title');
+                if (clinic.name) modalTitle.innerText = `Book Appointment — ${clinic.name}`;
+                bookingModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            } catch (e) {
+                console.error('Failed to parse clinic data', e);
+            }
+        }
+
+        function viewClinicDetailsEncoded(encoded) {
+            try {
+                const clinic = JSON.parse(decodeURIComponent(encoded));
+                const info = `Name: ${clinic.name || 'N/A'}\nAddress: ${clinic.address || clinic.vicinity || 'N/A'}\nRating: ${clinic.rating || 'N/A'}`;
+                alert(info);
+            } catch (e) {
+                alert('Unable to show details');
+            }
         }
 
         modalClose.addEventListener('click', () => {
@@ -1066,21 +1105,51 @@
             }
         });
 
-        appointmentForm.addEventListener('submit', function(e) {
+        appointmentForm.addEventListener('submit', async function(e) {
             e.preventDefault();
+            const placeId = document.getElementById('selectedClinic').value;
+            const patientName = document.getElementById('patientName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const date = document.getElementById('appointmentDate').value;
+            const time = document.getElementById('appointmentTime').value;
+            const notes = document.getElementById('symptoms').value.trim();
 
-            // Simulate booking process
+            if (!placeId) return alert('No clinic selected.');
+
             appointmentForm.style.display = 'none';
             bookingConfirmation.style.display = 'block';
 
-            // In a real app, this would send data to your backend
-            setTimeout(() => {
-                bookingModal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-                appointmentForm.style.display = 'grid';
-                bookingConfirmation.style.display = 'none';
-                appointmentForm.reset();
-            }, 3000);
+            try {
+                const resp = await fetch('/api/book-appointment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ place_id: placeId, patient_name: patientName, phone: phone, email: email, date: date, time: time, notes: notes })
+                });
+                const data = await resp.json();
+                if (data && data.success) {
+                    // show confirmation with booking id
+                    bookingConfirmation.querySelector('h4').innerText = 'Appointment Booked Successfully!';
+                    bookingConfirmation.querySelector('p').innerText = `Booking ID: ${data.booking_id}. The provider may contact you to confirm.`;
+                } else {
+                    bookingConfirmation.querySelector('h4').innerText = 'Booking Failed';
+                    bookingConfirmation.querySelector('p').innerText = data && data.error ? data.error : 'Unknown error';
+                }
+            } catch (err) {
+                console.error('Booking error', err);
+                bookingConfirmation.querySelector('h4').innerText = 'Booking Failed';
+                bookingConfirmation.querySelector('p').innerText = 'Network error while booking. Please try again.';
+            } finally {
+                setTimeout(() => {
+                    bookingModal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                    appointmentForm.style.display = 'grid';
+                    bookingConfirmation.style.display = 'none';
+                    appointmentForm.reset();
+                    // reset modal title
+                    document.querySelector('.modal-title').innerText = 'Book Appointment';
+                }, 3000);
+            }
         });
 
         // Set minimum date to today

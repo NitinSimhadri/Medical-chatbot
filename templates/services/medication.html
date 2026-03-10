@@ -233,7 +233,15 @@
     </nav>
 
     <div class="container">
-        <div class="header">
+            <h2>Upload Prescription</h2>
+            <form id="prescription-form" onsubmit="parsePrescription(event)">
+                <div class="form-group">
+                    <label for="prescription-file">Prescription Image</label>
+                    <input type="file" id="prescription-file" accept="image/*" required>
+                </div>
+                <button type="submit" class="btn">Parse Prescription</button>
+            </form>
+            <div id="prescription-result" style="margin-top:1rem;color:var(--text-light);"></div>
             <h1><i class="fas fa-pills"></i> Smart Medication Tracker</h1>
         </div>
 
@@ -316,6 +324,80 @@
             alert('Medication added successfully!');
         }
 
+        async function parsePrescription(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('prescription-file');
+            const out = document.getElementById('prescription-result');
+            out.innerHTML = 'Parsing...';
+            if (!fileInput.files.length) {
+                out.innerText = 'Please select an image file.';
+                return;
+            }
+            const form = new FormData();
+            form.append('image', fileInput.files[0]);
+            try {
+                const resp = await fetch('/api/parse-prescription', { method: 'POST', body: form });
+                const ct = resp.headers.get('content-type') || '';
+                if (!ct.includes('application/json')) {
+                    const text = await resp.text();
+                    out.innerHTML = `<pre style="color:var(--text-light)">${text}</pre><p><a href="/login">Sign in</a> may be required.</p>`;
+                    return;
+                }
+                const data = await resp.json();
+                if (!data.success) {
+                    out.innerHTML = `<p style="color:var(--danger)">${data.error || 'Failed to parse prescription'}</p>`;
+                    return;
+                }
+                const meds = data.medications || [];
+                let html = '<h3>Extracted Medications</h3>';
+                if (!meds.length && data.text) {
+                    html += `<pre style="color:var(--text-light)">${data.text}</pre>`;
+                } else if (!meds.length) {
+                    html += '<p style="color:var(--text-light)">No medications found in image.</p>';
+                } else {
+                    html += '<ul>';
+                    meds.forEach(m => {
+                        const name = (m && (m.name || m)) || 'Unknown';
+                        const dosage = (m && m.dosage) ? ` - ${m.dosage}` : '';
+                        html += `<li><strong>${name}</strong>${dosage} <button class="btn" onclick="explainMedication('${encodeURIComponent(name)}')" style="margin-left:.5rem">Explain</button></li>`;
+                    });
+                    html += '</ul>';
+                }
+                out.innerHTML = html;
+            } catch (err) {
+                out.innerText = 'Error: ' + err.message;
+            }
+        }
+
+        async function explainMedication(nameEncoded) {
+            const name = decodeURIComponent(nameEncoded);
+            const out = document.getElementById('prescription-result');
+            const holder = document.createElement('div');
+            holder.innerHTML = `<p style="color:var(--text-light)">Looking up ${name}...</p>`;
+            out.appendChild(holder);
+            try {
+                const resp = await fetch('/api/medication-explain', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: name })
+                });
+                const ct = resp.headers.get('content-type') || '';
+                if (!ct.includes('application/json')) {
+                    const text = await resp.text();
+                    holder.innerHTML = `<pre style="color:var(--text-light)">${text}</pre><p><a href="/login">Sign in</a> may be required.</p>`;
+                    return;
+                }
+                const data = await resp.json();
+                if (!data.success) {
+                    holder.innerHTML = `<p style="color:var(--danger)">${data.error || 'No information found.'}</p>`;
+                    return;
+                }
+                const info = data.explanation || data;
+                holder.innerHTML = `<div style="padding:.5rem;border:1px solid var(--border);margin-top:.5rem;background:var(--card)"><h4>${info.name || name}</h4><p style="color:var(--text-light)">${info.summary || info}</p></div>`;
+            } catch (err) {
+                holder.innerText = 'Error: ' + err.message;
+            }
+        }
         // Load theme
         document.body.setAttribute('data-theme', localStorage.getItem('medibot-theme') || 'light');
     </script>

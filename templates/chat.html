@@ -512,12 +512,9 @@
                     </a>
                     <a href="/services/prescription" class="service-item">
                         <i class="fas fa-file-prescription service-icon"></i>
-                        <span>Prescription AI</span>
+                        <span>Prescription Analysis</span>
                     </a>
-                    <a href="/services/summarizer" class="service-item">
-                        <i class="fas fa-file-export service-icon"></i>
-                        <span>Medical Summarizer</span>
-                    </a>
+                    <!-- Medical Summarizer removed -->
 
                     <!-- Health Monitoring -->
                     <a href="/services/bp-hr" class="service-item">
@@ -540,13 +537,13 @@
                     </a>
                     <a href="/services/skin" class="service-item">
                         <i class="fas fa-leaf service-icon"></i>
-                        <span>Skin & Hair Care</span>
+                        <span>Skin & Hair Analysis</span>
                     </a>
 
                     <!-- Healthcare Services -->
                     <a href="/services/appointment" class="service-item">
                         <i class="fas fa-calendar-check service-icon"></i>
-                        <span>Book Appointment</span>
+                        <span>Appointment Booking</span>
                     </a>
                     <a href="/services/reminder" class="service-item">
                         <i class="fas fa-bell service-icon"></i>
@@ -841,13 +838,36 @@
                     timeout: 30000,
                     success: function(response) {
                         typingIndicator.style.display = 'none';
-                        if (response.success) {
-                            addMessage(response.analysis, false);
+                        if (response && response.success) {
+                            // structured response expected from backend
+                            if (response.label || response.guidance) {
+                                const title = response.title || response.label || 'Result';
+                                const conf = (typeof response.confidence === 'number') ? `${(response.confidence*100).toFixed(0)}%` : 'N/A';
+                                const confidentText = response.confident ? '' : ' (low confidence — seek expert review)';
+                                const where = response.where_to_consult || 'Dermatology / GP';
+                                const severity = response.severity || 'unknown';
+
+                                const messageHtml = `
+                                    <strong>${title}</strong><br>
+                                    Predicted: <em>${response.label}</em> — confidence ${conf}${confidentText}<br>
+                                    <strong>What to do:</strong> ${response.guidance}<br>
+                                    <strong>Where to consult:</strong> ${where}<br>
+                                    <strong>Severity:</strong> ${severity}
+                                `;
+
+                                addMessage(messageHtml, false);
+                            } else if (response.analysis) {
+                                // legacy text field
+                                addMessage(response.analysis.replace(/\n/g, '<br>'), false);
+                            } else {
+                                addMessage('Image analyzed but no usable result returned.', false);
+                            }
+
                             imagePreview.style.display = 'none';
                             imageFileInput.value = '';
                             messageInput.value = '';
                         } else {
-                            addMessage('Failed to analyze image: ' + (response.error || 'Unknown error'), false);
+                            addMessage('Failed to analyze image: ' + (response && (response.error || 'Unknown error')), false);
                         }
                     },
                     error: function(xhr, status, error) {

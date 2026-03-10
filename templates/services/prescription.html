@@ -188,23 +188,45 @@
                 result.innerHTML = '<em>Uploading image and analyzing…</em>';
 
                 try {
-                    const resp = await fetch('/analyze-image', { method: 'POST', body: form });
+                    const resp = await fetch('/api/parse-prescription', { method: 'POST', body: form });
                     const data = await resp.json();
                     if (!resp.ok) {
                         result.innerHTML = `<div style="color: #b91c1c;">Error: ${data.error || JSON.stringify(data)}</div>`;
                         return;
                     }
-
-                    // Show analysis and steganography check (if present)
+                    // Render OCR + parsed medication information
                     let html = '<div style="padding: 1rem; background: #f0f9ff; border-left: 4px solid var(--primary); border-radius: 0.25rem;">';
-                    html += `<h3 style="color: var(--primary); margin-bottom: 0.5rem;">📋 Prescription Analysis</h3>`;
-                    if (data.analysis) html += `<pre style="white-space:pre-wrap; color: var(--text-dark);">${data.analysis}</pre>`;
-                    if (data.steganography) {
-                        const s = data.steganography;
-                        html += `<p><strong>Steganography:</strong> suspicious=${s.suspicious}, score=${s.score.toFixed(4)}</p>`;
-                        html += `<p style="font-size:0.9rem;color:var(--text-light);">${s.message}</p>`;
+                    html += `<h3 style="color: var(--primary); margin-bottom: 0.5rem;">📋 Prescription OCR</h3>`;
+                    if (data.text) html += `<h4 style="margin-bottom:0.5rem;">Detected text</h4><pre style="white-space:pre-wrap; color: var(--text-dark);">${data.text}</pre>`;
+                    if (data.medications && data.medications.length > 0) {
+                        html += `<h4 style="margin-top:0.75rem;">Medications (interpreted)</h4>`;
+                        data.medications.forEach(m => {
+                            const id = (m.identified && (m.identified.name || m.identified.indication)) ? m.identified : null;
+                            html += `<div style="border:1px solid ${'var(--border)'}; padding:0.75rem; margin-bottom:0.5rem; border-radius:0.5rem; background: #fff; color: var(--text-dark);">`;
+                            html += `<div style="display:flex; justify-content:space-between; gap:1rem; align-items:center;">`;
+                            html += `<div style="flex:1">`;
+                            html += `<strong style="font-size:1rem;">${(id && id.name) ? id.name : (m.name || m.line)}</strong>`;
+                            if (m.dose) html += ` <span style="color:var(--text-light);">${m.dose}</span>`;
+                            html += `<div style="color:var(--text-light); margin-top:0.25rem;">`; 
+                            if (id && id.indication) html += `<em>${id.indication}</em>`;
+                            html += `</div>`;
+                            html += `</div>`;
+                            html += `<div style="text-align:right; min-width:140px;">`;
+                            if (id && typeof id.confidence === 'number') html += `<div style="font-weight:600; color: #0f172a;">Confidence: ${(id.confidence*100).toFixed(0)}%</div>`;
+                            html += `<div style="font-size:0.85rem; color:var(--text-light);">Original: <div style=\"white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;\">${m.line}</div></div>`;
+                            html += `<div style="margin-top:0.5rem;">`;
+                            html += `<button class="btn" style="padding:0.35rem 0.6rem; font-size:0.85rem; background: #f1f5f9; color: #0f172a; border:1px solid var(--border);" onclick=\"explainMedication('${(id && id.name)? id.name.replace(/'/g,"\'") : (m.name || m.line).replace(/'/g,"\'") }', this)\">Explain more</button>`;
+                            html += `</div>`;
+                            html += `</div>`;
+                            html += `</div>`;
+                            html += `</div>`;
+                        });
+                        html += `<p style="margin-top:0.5rem; color:var(--text-light);">Tip: This is an automated interpretation. Confirm medicines and doses with your doctor or pharmacist.</p>`;
+                    } else {
+                        html += `<p style="color:var(--text-light);">No clear medication lines detected. Please review the detected text above.</p>`;
                     }
-                    html += `<p style="margin-top: 1rem; font-style: italic; color: var(--text-light);">✓ For detailed analysis, please consult with your healthcare provider</p>`;
+                    if (data.summary) html += `<p style="margin-top:0.75rem; font-style: italic; color: var(--text-light);">${data.summary}</p>`;
+                    html += `<p style="margin-top: 1rem; font-style: italic; color: var(--text-light);">✓ For safe interpretation, consult your healthcare provider</p>`;
                     html += '</div>';
 
                     result.innerHTML = html;
@@ -231,6 +253,44 @@
         }
 
         document.body.setAttribute('data-theme', localStorage.getItem('medibot-theme') || 'light');
+        
+        async function explainMedication(name, btn) {
+            try {
+                btn.disabled = true;
+                const parent = btn.closest('div');
+                // small spinner
+                const spinner = document.createElement('div');
+                spinner.style.fontSize = '0.85rem';
+                spinner.style.color = 'var(--text-light)';
+                spinner.innerText = 'Loading explanation...';
+                btn.parentNode.appendChild(spinner);
+
+                const resp = await fetch('/api/medication-explain', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: name })
+                });
+                const data = await resp.json();
+                spinner.remove();
+                btn.disabled = false;
+                if (!resp.ok) {
+                    alert('Explanation failed: ' + (data.error || JSON.stringify(data)));
+                    return;
+                }
+
+                const box = document.createElement('div');
+                box.style.marginTop = '0.5rem';
+                box.style.padding = '0.6rem';
+                box.style.background = '#f8fafc';
+                box.style.borderRadius = '0.4rem';
+                box.style.border = '1px solid var(--border)';
+                box.innerHTML = `<strong>About ${name}:</strong> <div style="color:var(--text-dark); margin-top:0.25rem;">${data.explanation}</div>`;
+                btn.parentNode.appendChild(box);
+            } catch (e) {
+                btn.disabled = false;
+                alert('Error fetching explanation: ' + e);
+            }
+        }
     </script>
 </body>
 </html>

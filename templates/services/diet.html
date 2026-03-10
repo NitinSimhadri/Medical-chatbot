@@ -84,7 +84,43 @@
             </label><br/><br/>
             <button type="submit">Get Plan</button>
         </form>
+        <div style="margin-top:12px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+            <label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="protein_focus"> Prioritise protein-rich meals</label>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <label style="font-size:13px;margin-right:6px;color:var(--text-light)">Dietary filters:</label>
+                <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="filter_veg"> Veg</label>
+                <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="filter_nonveg"> Non Veg</label>
+                <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="filter_gf"> Gluten-free</label>
+            </div>
+            <button id="orderProteinBtn" class="btn" style="background:linear-gradient(135deg,var(--primary),#2563eb);">Order Protein Meals</button>
+            <button id="nearbyFitnessBtn" class="btn" style="background:linear-gradient(135deg,var(--primary),#2563eb);">Find Nearby Gyms / Yoga</button>
+        </div>
+        <div id="serviceResults" style="margin-top:16px"></div>
+
+        <!-- Order modal -->
+        <div id="orderModal" style="display:none;position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:2000;"> 
+            <div style="background:white;color:var(--text-dark);max-width:600px;width:90%;margin:auto;border-radius:8px;padding:18px;box-shadow:0 12px 40px rgba(0,0,0,0.4);">
+                <h3 id="orderModalTitle">Order</h3>
+                <div id="orderModalBody" style="margin-top:8px;color:var(--text-light)"></div>
+                <div style="margin-top:12px;display:flex;gap:8px;flex-direction:column;">
+                    <input id="orderAddress" placeholder="Delivery address" style="padding:8px;border:1px solid var(--border);border-radius:4px;">
+                    <input id="orderPhone" placeholder="Contact phone" style="padding:8px;border:1px solid var(--border);border-radius:4px;">
+                </div>
+                <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;">
+                    <button id="orderCancel" class="btn" style="background:#e5e7eb;color:#111;border-radius:6px;padding:8px 12px;">Cancel</button>
+                    <button id="orderConfirm" class="btn">Place Order</button>
+                </div>
+            </div>
+        </div>
         <div id="plan" style="margin-top:16px"></div>
+        <div class="card">
+            <h3>How to use</h3>
+            <ol style="color:var(--text-light);">
+                <li>Enter your age, height, weight and activity level and click "Get Plan" to calculate estimated calories.</li>
+                <li>Use the dietary filters to tailor suggestions (Veg / Non Veg / Gluten-free) and enable protein focus if desired.</li>
+                <li>Click "Order Protein Meals" or "Find Nearby Gyms / Yoga" to discover local options, or use homemade suggestions if none are found.</li>
+            </ol>
+        </div>
         <p><a href="/">Return to chat</a></p>
     </div>
     <script>
@@ -110,6 +146,225 @@
                     <li>Dinner: Fish/legumes + salad or cooked vegetables</li>
                 </ul>`;
             document.getElementById('plan').innerHTML = html;
+        })
+
+        // Order protein-focused meals
+        let latestOffers = [];
+        function offerMatchesDiet(offer){
+            const veg = document.getElementById('filter_veg').checked;
+            const nonveg = document.getElementById('filter_nonveg').checked;
+            const gf = document.getElementById('filter_gf').checked;
+            if(!veg && !nonveg && !gf) return true;
+            const name = (offer.name||'').toLowerCase();
+            const menu = (offer.sample_menu||[]).map(m=>m.toLowerCase()).join(' ');
+            if(nonveg){
+                // match common non-veg/meat keywords
+                if(name.match(/chicken|fish|mutton|beef|pork|turkey|egg|seafood|shrimp|prawn|bacon/) || menu.match(/chicken|fish|mutton|beef|pork|turkey|egg|seafood|shrimp|prawn|bacon|meat/)) return true;
+            }
+            if(veg){ if(name.includes('veg')||menu.includes('veg')||menu.match(/paneer|tofu|lentil|cheese|salad|vegetable/)) return true; }
+            if(gf){ if(menu.includes('gluten-free')||menu.includes('gf')||!menu.match(/bread|wrap|pasta|naan|roti|bun/)) return true; }
+            return false;
+        }
+
+        // Return HTML with homemade protein-rich suggestions when no external offers found
+        function homemadeSuggestionsHTML(calories){
+            const veg = document.getElementById('filter_veg').checked;
+            const nonveg = document.getElementById('filter_nonveg').checked;
+            const gf = document.getElementById('filter_gf').checked;
+            const proteinFocus = document.getElementById('protein_focus').checked;
+
+            const suggestions = [
+                { title: 'Grilled Chicken & Quinoa Bowl', veg:false, gf:true, text: 'Grilled chicken breast, quinoa, roasted vegetables, olive oil. High protein and balanced carbs.' },
+                { title: 'Lentil & Veggie Stew', veg:true, gf:true, text: 'Red lentils cooked with tomatoes, spinach and spices. Serve with a side salad.' },
+                { title: 'Greek Yogurt Parfait', veg:true, gf:true, text: 'Greek yogurt layered with nuts, seeds and berries. Quick, high-protein snack.' },
+                { title: 'Paneer Stir-fry', veg:true, gf:false, text: 'Paneer cubes stir-fried with bell peppers, spinach, and light soy/tamarind sauce.' },
+                { title: 'Egg & Avocado Toast', veg:false, gf:false, text: 'Poached/boiled eggs with avocado on whole-grain toast. Swap toast for gluten-free bread to make GF.' },
+                { title: 'Chickpea & Spinach Salad', veg:true, gf:true, text: 'Canned chickpeas, fresh spinach, cherry tomatoes, lemon dressing and seeds.' },
+                { title: 'Fish Curry with Vegetables', veg:false, gf:true, text: 'Light coconut-based fish curry with mixed vegetables served over brown rice.' },
+                { title: 'Tofu & Broccoli Stir-fry', veg:true, gf:true, text: 'Firm tofu, broccoli, garlic, ginger, and sesame oil. Serve over quinoa for extra protein.' }
+            ];
+
+            // Filter suggestions by selected preferences
+            const filtered = suggestions.filter(s => {
+                if(veg && !s.veg) return false;
+                if(nonveg && s.veg) return false;
+                if(gf && !s.gf) return false;
+                return true;
+            });
+
+            const chosen = filtered.length ? filtered : suggestions.slice(0,4);
+
+            let html = '<h3>Homemade Protein Suggestions</h3><p>We couldn\'t find nearby offers — here are easy homemade options:</p><ul>';
+            chosen.forEach(s => {
+                html += `<li><strong>${s.title}</strong>: <span style="color:var(--text-light)">${s.text}</span></li>`;
+            });
+            html += '</ul>';
+            if(proteinFocus){ html += '<p style="color:var(--text-light);font-size:0.95rem">Tip: To increase protein, add a scoop of protein powder to smoothies, include legumes/eggs/tofu/paneer, or add a lean meat portion.</p>'; }
+            if(calories){ html += `<p style="color:var(--text-light);font-size:0.95rem">Estimated calories target: <strong>${calories} kcal</strong></p>` }
+            return html;
+        }
+
+        // Return HTML with home / nearby fitness suggestions when no facilities found
+        function homemadeGymSuggestionsHTML(type){
+            const t = (type||'gym').toLowerCase();
+            let title = 'Home & Nearby Fitness Options';
+            if(t==='yoga') title = 'Home Yoga & Nearby Options';
+            if(t==='fitness') title = 'Home Fitness & Nearby Options';
+
+            const items = [
+                { title: 'Bodyweight Circuit (20-30 min)', text: '3 rounds: 10 push-ups, 15 squats, 10 lunges per leg, 30s plank, 20 jumping jacks. Rest 60s between rounds.' },
+                { title: 'Quick HIIT (15 min)', text: '30s high intensity (burpees/sprints), 30s rest — repeat 10 rounds. Great for cardio and calorie burn.' },
+                { title: 'Beginner Yoga Flow (20 min)', text: 'Sun salutations, gentle hip openers, child pose and finishing with 5 min deep breathing.' },
+                { title: 'Park Workout', text: 'Use a nearby park: step-ups on a bench, incline push-ups, tricep dips, and sprints.' },
+                { title: 'Resistance Band Routine', text: 'If you have a band: rows, banded squats, banded glute bridges, shoulder presses — 3 sets each.' },
+                { title: 'Find an Online Trainer', text: 'Search YouTube or fitness apps for guided strength, HIIT or yoga sessions matching your level.' }
+            ];
+
+            let html = `<h3>${title}</h3><p>We couldn\'t find nearby facilities — try these practical options:</p><ul>`;
+            items.forEach(it => { html += `<li><strong>${it.title}</strong>: <span style="color:var(--text-light)">${it.text}</span></li>` });
+            html += '</ul>';
+            html += '<p style="color:var(--text-light);font-size:0.95rem">Tip: If you prefer an in-person option, try searching maps for nearby parks, community centres, or small studios — or try the <a href="/services/diet" target="_self">Find Nearby Gyms / Yoga</a> button again and allow location access.</p>';
+            return html;
+        }
+
+        document.getElementById('orderProteinBtn').addEventListener('click', async function(e){
+            e.preventDefault();
+            const caloriesText = document.querySelector('.calorie-value') ? document.querySelector('.calorie-value').innerText.replace(/[^0-9]/g,'') : '';
+            const calories = caloriesText ? parseInt(caloriesText) : null;
+            const resDiv = document.getElementById('serviceResults');
+            resDiv.innerHTML = '<p>Searching for protein-focused meals nearby…</p>';
+
+            // Try to get browser geolocation first; fallback to pincode prompt
+            let lat = null, lng = null, pincode = '';
+            if(navigator.geolocation){
+                try{
+                    const pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, {timeout:7000}));
+                    lat = pos.coords.latitude; lng = pos.coords.longitude;
+                }catch(err){
+                    // ignore and fall back to pincode
+                }
+            }
+            if(!lat && !lng){
+                pincode = prompt('Enter your postal code / pincode (optional)') || '';
+            }
+            try{
+                const body = {pincode, calories};
+                if(lat && lng){ body.lat = lat; body.lng = lng }
+                let resp = await fetch('/api/order-protein', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+                if(resp.status === 404){
+                    // fallback: try GET with querystring (some servers may not allow POST)
+                    const qs = new URLSearchParams(); if(body.pincode) qs.set('pincode', body.pincode); if(body.calories) qs.set('calories', body.calories); if(body.lat) qs.set('lat', body.lat); if(body.lng) qs.set('lng', body.lng);
+                    resp = await fetch('/api/order-protein?'+qs.toString());
+                }
+                const ct = resp.headers.get('Content-Type') || '';
+                if(!ct.includes('application/json')){
+                    const text = await resp.text();
+                    resDiv.innerHTML = `<p>Failed to search: server returned non-JSON response. You may need to be logged in. (${resp.status}) <a href="/login">Sign in</a></p><pre style="color:#666;font-size:12px;margin-top:8px;">${text.slice(0,800)}</pre>`;
+                    return;
+                }
+                const dj = await resp.json();
+                if(!dj.success){ resDiv.innerHTML = '<p>Error: '+(dj.error||'no results')+'</p>'; return }
+                if(!dj.offers || dj.offers.length===0){
+                    // show homemade suggestions when no offers
+                    const caloriesText = document.querySelector('.calorie-value') ? document.querySelector('.calorie-value').innerText.replace(/[^0-9]/g,'') : '';
+                    const calories = caloriesText ? parseInt(caloriesText) : null;
+                    resDiv.innerHTML = homemadeSuggestionsHTML(calories);
+                    return
+                }
+                latestOffers = dj.offers;
+                let html = '<h3>Protein Meal Options</h3><div class="meal-grid">';
+                dj.offers.filter(offerMatchesDiet).forEach((o, idx) => {
+                    // use index in latestOffers to open modal
+                    const index = latestOffers.indexOf(o);
+                    html += `<div class="meal-item"><div class="meal-time"><strong>${o.name}</strong> ${o.rating?`• ${o.rating}⭐`:''}</div><div class="meal-desc">${o.address||''}${o.phone?`<div style="margin-top:6px;color:#475569;font-size:0.92rem">Phone: ${o.phone}</div>`:''}${o.website?`<div style="margin-top:6px;color:#475569;font-size:0.92rem">Website: <a href="${o.website}" target="_blank">${o.website}</a></div>`:''}</div><div style="margin-top:8px;display:flex;gap:8px;"><a class="btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.name+' '+(o.address||''))}" target="_blank">Open in Maps</a><button class="btn" style="background:#10b981" onclick="openOrderModal(${index})">Order</button></div></div>`
+                })
+                html += '</div>'
+                resDiv.innerHTML = html;
+            }catch(err){ resDiv.innerHTML = '<p>Failed to search: '+err.message+'</p>' }
+        })
+
+        // Order modal handlers
+        window.openOrderModal = function(idx){
+            const offer = latestOffers[idx];
+            if(!offer) return alert('Offer not available');
+            document.getElementById('orderModalTitle').innerText = 'Order: ' + (offer.name || 'Offer');
+            let body = `<div><strong>${offer.name}</strong><div style="color:var(--text-light);margin-top:6px;">${offer.address||''}</div>`;
+            if(offer.phone){ body += `<div style="margin-top:6px;color:#475569">Phone: ${offer.phone}</div>` }
+            if(offer.website){ body += `<div style="margin-top:6px;color:#475569">Website: <a href="${offer.website}" target="_blank">${offer.website}</a></div>` }
+            if(offer.sample_menu && offer.sample_menu.length){ body += '<div style="margin-top:8px;font-size:0.95rem;color:var(--text-light)"><strong>Sample menu:</strong><ul>' + offer.sample_menu.map(m=>`<li>${m}</li>`).join('') + '</ul></div>'; }
+            body += '</div>';
+            document.getElementById('orderModalBody').innerHTML = body;
+            document.getElementById('orderAddress').value = '';
+            document.getElementById('orderPhone').value = '';
+            document.getElementById('orderModal').style.display = 'flex';
+            // attach chosen offer to confirm button
+            document.getElementById('orderConfirm').dataset.offerIdx = idx;
+        }
+
+        document.getElementById('orderCancel').addEventListener('click', function(){ document.getElementById('orderModal').style.display='none'; });
+        document.getElementById('orderConfirm').addEventListener('click', async function(){
+            const idx = parseInt(this.dataset.offerIdx);
+            const offer = latestOffers[idx];
+            const address = document.getElementById('orderAddress').value || '';
+            const phone = document.getElementById('orderPhone').value || '';
+            if(!offer) return alert('Offer missing');
+            const btn = this; btn.disabled = true; btn.innerText = 'Placing...';
+            try{
+                const resp = await fetch('/api/mock-order', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({offer, address, phone})});
+                const ct = resp.headers.get('Content-Type') || '';
+                if(!ct.includes('application/json')){ const t = await resp.text(); alert('Server error or not logged in'); btn.disabled=false; btn.innerText='Place Order'; return }
+                const dj = await resp.json();
+                if(!dj.success){ alert('Order failed: ' + (dj.error||'unknown')); btn.disabled=false; btn.innerText='Place Order'; return }
+                alert('Order placed (simulated). Order id: ' + dj.order_id);
+                document.getElementById('orderModal').style.display='none';
+            }catch(err){ alert('Failed to place order: '+err.message); }
+            btn.disabled=false; btn.innerText='Place Order';
+        })
+
+        // Find nearby fitness centers (gym / yoga)
+        document.getElementById('nearbyFitnessBtn').addEventListener('click', async function(e){
+            e.preventDefault();
+            const type = prompt('Type (gym / yoga / fitness) — default gym') || 'gym';
+            const resDiv = document.getElementById('serviceResults');
+            resDiv.innerHTML = '<p>Searching nearby facilities…</p>';
+
+            // Try geolocation first
+            let lat = null, lng = null, pincode = '';
+            if(navigator.geolocation){
+                try{
+                    const pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, {timeout:7000}));
+                    lat = pos.coords.latitude; lng = pos.coords.longitude;
+                }catch(err){
+                    // ignore and prompt for pincode
+                }
+            }
+            if(!lat && !lng){
+                pincode = prompt('Enter your postal code / pincode (optional)') || '';
+            }
+            try{
+                const body = {pincode, type};
+                if(lat && lng){ body.lat = lat; body.lng = lng }
+                let resp = await fetch('/api/nearby-fitness', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+                if(resp.status === 404){
+                    const qs = new URLSearchParams(); if(body.pincode) qs.set('pincode', body.pincode); if(body.type) qs.set('type', body.type); if(body.lat) qs.set('lat', body.lat); if(body.lng) qs.set('lng', body.lng);
+                    resp = await fetch('/api/nearby-fitness?'+qs.toString());
+                }
+                const ct = resp.headers.get('Content-Type') || '';
+                if(!ct.includes('application/json')){
+                    const text = await resp.text();
+                    resDiv.innerHTML = `<p>Failed to search: server returned non-JSON response. You may need to be logged in. (${resp.status}) <a href="/login">Sign in</a></p><pre style="color:#666;font-size:12px;margin-top:8px;">${text.slice(0,800)}</pre>`;
+                    return;
+                }
+                const dj = await resp.json();
+                if(!dj.success){ resDiv.innerHTML = '<p>Error: '+(dj.error||'no results')+'</p>'; return }
+                if(!dj.facilities || dj.facilities.length===0){ resDiv.innerHTML = homemadeGymSuggestionsHTML(type); return }
+                let html = '<h3>Nearby Facilities</h3><ul>';
+                dj.facilities.forEach(f => {
+                    html += `<li><strong>${f.name}</strong> — ${f.address || ''} ${f.rating?`• ${f.rating}⭐`:''} <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(f.name+' '+(f.address||''))}" target="_blank">Map</a></li>`
+                })
+                html += '</ul>'
+                resDiv.innerHTML = html;
+            }catch(err){ resDiv.innerHTML = '<p>Failed to search: '+err.message+'</p>' }
         })
     </script>
 </body>
