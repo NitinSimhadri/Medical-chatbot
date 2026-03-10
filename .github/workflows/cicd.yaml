@@ -10,277 +10,69 @@ permissions:
 
 jobs:
   prechecks:
-    name: Pre-check Secrets & Requirements
+    name: Pre-check secrets & requirements
     runs-on: ubuntu-latest
     steps:
       - name: Checkout (allow commits)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: true
 
       - name: Verify required secrets
+        shell: bash
         run: |
           missing=0
-          check() {
+          check_secret() {
             if [ -z "${1}" ]; then
-              echo "Missing: ${2}"
+              echo "Missing secret: ${2}"
               missing=1
             fi
           }
 
-          check "${{ secrets.AWS_ACCESS_KEY_ID }}" AWS_ACCESS_KEY_ID
-          check "${{ secrets.AWS_SECRET_ACCESS_KEY }}" AWS_SECRET_ACCESS_KEY
-          check "${{ secrets.AWS_DEFAULT_REGION }}" AWS_DEFAULT_REGION
-          check "${{ secrets.ECR_REPO }}" ECR_REPO
-          check "${{ secrets.PINECONE_API_KEY }}" PINECONE_API_KEY
-          check "${{ secrets.GROQ_API_KEY }}" GROQ_API_KEY
-          check "${{ secrets.HUGGING_FACE_API_KEY }}" HUGGING_FACE_API_KEY
-          check "${{ secrets.HF_IMAGE_MODEL }}" HF_IMAGE_MODEL
-          check "${{ secrets.GOOGLE_MAPS_API_KEY }}" GOOGLE_MAPS_API_KEY
-          check "${{ secrets.OCR_SPACE_API_KEY }}" OCR_SPACE_API_KEY
-          check "${{ secrets.FERNET_KEY }}" FERNET_KEY
-          check "${{ secrets.SMTP_SERVER }}" SMTP_SERVER
-          check "${{ secrets.SMTP_PORT }}" SMTP_PORT
-          check "${{ secrets.SMTP_USER }}" SMTP_USER
-          check "${{ secrets.SMTP_PASS }}" SMTP_PASS
-          check "${{ secrets.EMAIL_FROM }}" EMAIL_FROM
+          check_secret "${{ secrets.AWS_ACCESS_KEY_ID }}" AWS_ACCESS_KEY_ID
+          check_secret "${{ secrets.AWS_SECRET_ACCESS_KEY }}" AWS_SECRET_ACCESS_KEY
+          check_secret "${{ secrets.AWS_DEFAULT_REGION }}" AWS_DEFAULT_REGION
+          check_secret "${{ secrets.ECR_REPO }}" ECR_REPO
+          check_secret "${{ secrets.PINECONE_API_KEY }}" PINECONE_API_KEY
+          check_secret "${{ secrets.GROQ_API_KEY }}" GROQ_API_KEY
+          check_secret "${{ secrets.HUGGING_FACE_API_KEY }}" HUGGING_FACE_API_KEY
+          check_secret "${{ secrets.HF_IMAGE_MODEL }}" HF_IMAGE_MODEL
+          check_secret "${{ secrets.GOOGLE_MAPS_API_KEY }}" GOOGLE_MAPS_API_KEY
+          check_secret "${{ secrets.OCR_SPACE_API_KEY }}" OCR_SPACE_API_KEY
+          check_secret "${{ secrets.FERNET_KEY }}" FERNET_KEY
+          check_secret "${{ secrets.SMTP_SERVER }}" SMTP_SERVER
+          check_secret "${{ secrets.SMTP_PORT }}" SMTP_PORT
+          check_secret "${{ secrets.SMTP_USER }}" SMTP_USER
+          check_secret "${{ secrets.SMTP_PASS }}" SMTP_PASS
+          check_secret "${{ secrets.EMAIL_FROM }}" EMAIL_FROM
 
-          if [ $missing -ne 0 ]; then
-            echo "One or more required secrets are missing. Add them in Settings → Secrets → Actions.";
+          if [ "$missing" -ne 0 ]; then
+            echo "One or more required secrets are missing. Add them in repository Settings → Secrets → Actions." >&2
             exit 1
           fi
 
-      - name: Check and fix requirements
+      - name: Run requirements checker
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          REQ=requirements.txt
-          LLM=requirements-llm.txt
-          echo "Checking ${REQ} for required runtime packages..."
-          cat > /tmp/check_requirements.py <<'PY'
-import sys
-req='requirements.txt'
-llm='requirements-llm.txt'
-required=['flask','python-dotenv','Pillow','requests','pypdf','cryptography','pytesseract']
-existing=set()
-for f in (req,llm):
-    try:
-        for l in open(f):
-            l=l.split('#',1)[0].strip()
-            if not l: continue
-            pkg=l.split('==')[0].split('>=')[0].split('<=')[0].split('>')[0].split('<')[0].strip().lower()
-            existing.add(pkg)
-    except FileNotFoundError:
-        pass
-missing=[p for p in required if p.lower() not in existing]
-if missing:
-    print('Missing packages:', missing)
-    with open(req,'a') as fh:
-        for p in missing:
-            fh.write(p+'\n')
-    sys.exit(2)
-else:
-    print('No missing runtime packages')
-    sys.exit(0)
-PY
-
-          python /tmp/check_requirements.py || (
-            git config user.email "github-actions[bot]@users.noreply.github.com" &&
-            git config user.name "github-actions[bot]" &&
-            git add ${REQ} &&
-            git commit -m "ci: add missing runtime packages to requirements.txt" || true &&
-            git push || true
-          )
-
-  build-and-push:
-    name: Build & Push to ECR
-    needs: prechecks
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Build and push image
-        id: build-image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          platforms: linux/amd64
-          push: true
-          tags: |
-            ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:latest
-            ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:${{ github.sha }}
-          cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:cache
-          cache-to: type=inline
-
-  deploy-self-hosted:
-    name: Deploy on self-hosted EC2
-    needs: build-and-push
-    runs-on: self-hosted
-    steps:
-      - name: Ensure Docker is available (self-hosted)
-        run: |
-          docker version
-          docker info || true
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
-
-      - name: Login to Amazon ECR (self-hosted)
-        id: login-ecr-self
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Deploy container on EC2
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr-self.outputs.registry }}
-          ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
-        run: |
-          set -euxo pipefail
-
-          IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:latest"
-
-          echo "Pulling image: $IMAGE"
-          docker pull "$IMAGE"
-
-          # Stop/remove existing container if present (ignore failures)
-          docker stop medicalbot || true
-          docker rm medicalbot || true
-
-          # Run the new container (fail if run fails)
-          docker run -d \
-            --name medicalbot \
-            --restart unless-stopped \
-            -p 8080:8080 \
-            -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
-            -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-            -e AWS_DEFAULT_REGION="${{ secrets.AWS_DEFAULT_REGION }}" \
-            -e PINECONE_API_KEY="${{ secrets.PINECONE_API_KEY }}" \
-            -e GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}" \
-            -e HUGGING_FACE_API_KEY="${{ secrets.HUGGING_FACE_API_KEY }}" \
-            -e HF_IMAGE_MODEL="${{ secrets.HF_IMAGE_MODEL }}" \
-            -e GOOGLE_MAPS_API_KEY="${{ secrets.GOOGLE_MAPS_API_KEY }}" \
-            -e OCR_SPACE_API_KEY="${{ secrets.OCR_SPACE_API_KEY }}" \
-            -e FERNET_KEY="${{ secrets.FERNET_KEY }}" \
-            -e SMTP_SERVER="${{ secrets.SMTP_SERVER }}" \
-            -e SMTP_PORT="${{ secrets.SMTP_PORT }}" \
-            -e SMTP_USER="${{ secrets.SMTP_USER }}" \
-            -e SMTP_PASS="${{ secrets.SMTP_PASS }}" \
-            -e EMAIL_FROM="${{ secrets.EMAIL_FROM }}" \
-            "$IMAGE"
-
-          sleep 10
-          docker ps --filter name=medicalbot
-          docker inspect -f '{{.State.Running}}' medicalbot
-          docker logs --tail 200 medicalbot
-
-# Required repository secrets (add these in Settings → Secrets → Actions):
-# - AWS_ACCESS_KEY_ID
-# - AWS_SECRET_ACCESS_KEY
-# - AWS_DEFAULT_REGION
-# - ECR_REPO
-# - PINECONE_API_KEY
-# - GROQ_API_KEY
-# - HUGGING_FACE_API_KEY
-# - HF_IMAGE_MODEL
-# - GOOGLE_MAPS_API_KEY
-# - OCR_SPACE_API_KEY
-# - FERNET_KEY
-# - SMTP_SERVER
-# - SMTP_PORT
-# - SMTP_USER
-# - SMTP_PASS
-# - EMAIL_FROM
-name: CI/CD — Build to ECR and deploy to EC2 (self-hosted)
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-
-permissions:
-  contents: write
-
-jobs:
-  prechecks:
-    name: Pre-check Secrets & Requirements
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout (allow commits)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Verify required secrets
-        run: |
-          missing=0
-          check() {
-            if [ -z "${1}" ]; then
-              echo "Missing: ${2}"
-              missing=1
-            fi
-          }
-
-          check "${{ secrets.AWS_ACCESS_KEY_ID }}" AWS_ACCESS_KEY_ID
-          check "${{ secrets.AWS_SECRET_ACCESS_KEY }}" AWS_SECRET_ACCESS_KEY
-          check "${{ secrets.AWS_DEFAULT_REGION }}" AWS_DEFAULT_REGION
-          check "${{ secrets.ECR_REPO }}" ECR_REPO
-          check "${{ secrets.PINECONE_API_KEY }}" PINECONE_API_KEY
-          check "${{ secrets.GROQ_API_KEY }}" GROQ_API_KEY
-          check "${{ secrets.HUGGING_FACE_API_KEY }}" HUGGING_FACE_API_KEY
-          check "${{ secrets.HF_IMAGE_MODEL }}" HF_IMAGE_MODEL
-          check "${{ secrets.GOOGLE_MAPS_API_KEY }}" GOOGLE_MAPS_API_KEY
-          check "${{ secrets.OCR_SPACE_API_KEY }}" OCR_SPACE_API_KEY
-          check "${{ secrets.FERNET_KEY }}" FERNET_KEY
-          check "${{ secrets.SMTP_SERVER }}" SMTP_SERVER
-          check "${{ secrets.SMTP_PORT }}" SMTP_PORT
-          check "${{ secrets.SMTP_USER }}" SMTP_USER
-          check "${{ secrets.SMTP_PASS }}" SMTP_PASS
-          check "${{ secrets.EMAIL_FROM }}" EMAIL_FROM
-
-          if [ $missing -ne 0 ]; then
-            echo "One or more required secrets are missing. Add them in Settings → Secrets → Actions.";
-            exit 1
-          fi
-
-      - name: Check and fix requirements
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          echo "Running requirements check script"
-          python .github/scripts/check_requirements.py || rc=$?; if [ "$${rc:-0}" -eq 2 ]; then
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git config user.name "github-actions[bot]"
+          # The script exits 0 when OK, 2 when it appended missing packages, other non-zero indicates error
+          python .github/scripts/check_requirements.py || rc=$?; true
+          if [ "${rc:-0}" -eq 2 ]; then
+            echo "requirements.txt updated; committing changes"
             git add requirements.txt
             git commit -m "ci: add missing runtime packages to requirements.txt" || true
             git push || true
-          elif [ "$${rc:-0}" -ne 0 ]; then
+          elif [ "${rc:-0}" -ne 0 ]; then
+            echo "Requirements check failed with code ${rc}" >&2
             exit $rc
+          else
+            echo "Requirements check passed"
           fi
 
   build-and-push:
-    name: Build & Push to ECR
+    name: Build & push Docker image to ECR
     needs: prechecks
     runs-on: ubuntu-latest
     steps:
@@ -343,17 +135,11 @@ jobs:
           ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
         run: |
           set -euxo pipefail
-
           IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:latest"
-
           echo "Pulling image: $IMAGE"
           docker pull "$IMAGE"
-
-          # Stop/remove existing container if present (ignore failures)
           docker stop medicalbot || true
           docker rm medicalbot || true
-
-          # Run the new container (fail if run fails)
           docker run -d \
             --name medicalbot \
             --restart unless-stopped \
@@ -374,26 +160,7 @@ jobs:
             -e SMTP_PASS="${{ secrets.SMTP_PASS }}" \
             -e EMAIL_FROM="${{ secrets.EMAIL_FROM }}" \
             "$IMAGE"
-
           sleep 10
           docker ps --filter name=medicalbot
           docker inspect -f '{{.State.Running}}' medicalbot
           docker logs --tail 200 medicalbot
-
-# Required repository secrets (add these in Settings → Secrets → Actions):
-# - AWS_ACCESS_KEY_ID
-# - AWS_SECRET_ACCESS_KEY
-# - AWS_DEFAULT_REGION
-# - ECR_REPO
-# - PINECONE_API_KEY
-# - GROQ_API_KEY
-# - HUGGING_FACE_API_KEY
-# - HF_IMAGE_MODEL
-# - GOOGLE_MAPS_API_KEY
-# - OCR_SPACE_API_KEY
-# - FERNET_KEY
-# - SMTP_SERVER
-# - SMTP_PORT
-# - SMTP_USER
-# - SMTP_PASS
-# - EMAIL_FROM
